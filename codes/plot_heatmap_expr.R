@@ -208,12 +208,12 @@ plot_heatmap_expr <- function(res_10) {
   library(ggpmisc)
   p1=ggplot(BB,aes(x=esc_diff,y=logFC)) +
     stat_poly_line() +
-    stat_poly_eq(use_label(c("eq", "adj.R2", "p"))) +
+    stat_poly_eq(use_label(c("eq", "adj.R2", "p")),size=5) +
     geom_point() +
     ylim(-0.2,0.6) +
     theme_minimal() +
     xlab("Difference in fraction of lines\nwhere gene ASE > 0.1") +
-    ylab(expression("log"[2]*"(Fold changes)")) +
+    ylab(expression("log"[2]*"(Fold change)")) +
     theme(axis.text=element_text(size=18),
           axis.title=element_text(size=18), 
           legend.title = element_text(size=18),

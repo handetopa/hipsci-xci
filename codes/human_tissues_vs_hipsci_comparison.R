@@ -28,7 +28,7 @@ human_tissues_vs_hipsci_comparison <- function(human_xci,ddf,th_inactive=0,th_es
     p.vals[i,3]=chisq.test(rbind(c(sum(c>=th),sum(c<=th_inactive),sum(c<th & c>th_inactive)),table(human_xci[ind_c])))$p.value
   }
   
-  print("Chi-squared test p-val for Group 1 vs Human XCI status proportions:")
+  print("Chi-squared test p-val for Human XCI status vs Group 1, Group 2, Group 3 proportions:")
   print(p.vals[which(ths==th_esc),])
   
   df.pvals=as.data.frame(p.vals)
@@ -133,16 +133,16 @@ human_tissues_vs_hipsci_comparison <- function(human_xci,ddf,th_inactive=0,th_es
                   width = 0.2) +
     ylim(0,100) +
     theme_minimal() +
-    scale_fill_manual(values=cols,breaks=c("Escape","Variable","Inactive"),labels=c("Escape","Variable","Inactive")) +
+    scale_fill_manual(values=cols,breaks=c("Escape","Variable","Inactive"),labels=c("Escape (14.36%)","Variable (11.44%)","Inactive (74.20%)")) +
     scale_color_manual(name="Female\ngroups",values=c("black","#CC0033", "mediumorchid","#FF99CC"),labels=c("Human","Group 1","Group 2", "Group 3"), breaks=c("Human","Group1","Group2", "Group3")) +
     xlab("") +
     ylab("Percentage of chr-X genes") +
-    labs(fill="Human\nXCI status") +
+    labs(fill="Human escape\nfrom XCI") +
     theme(text = element_text(size=20)) +
     guides(color="none") +
     theme(axis.text.x = element_text(angle = 90, vjust=0.5, color=c(rep("black",3),rep("#CC0033",3),rep("mediumorchid",3),rep("#FF99CC",3)))) 
   
-  ggsave(paste("/Users/topah/Desktop/hipsci_codes/figures/xci_",sub("\\.", "", as.character(th_esc)),".pdf",sep=""), p.xci, width=18,height=18,units="cm",limitsize = FALSE)
+  ggsave(paste("/Users/topah/Desktop/hipsci_codes/figures/xci_",sub("\\.", "", as.character(th_esc)),".pdf",sep=""), p.xci, width=20,height=18,units="cm",limitsize = FALSE)
   
   print(paste("Percentage of human escape: ",df_gg$perc[which(df_gg$comb_group=="Human_Escape")],sep=""))
   print(paste("Percentage of human variable: ",df_gg$perc[which(df_gg$comb_group=="Human_Variable")],sep=""))

@@ -1,4 +1,4 @@
-boxplot_esc_ratio_per_xci_group <- function() {
+boxplot_esc_ratio_per_xci_group <- function(human_xci=NULL) {
   chr="X"
   f1=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_mh2_new_FALSE_TRUE.txt")
   f2=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_mhe2_new_FALSE_TRUE.txt")
@@ -30,6 +30,7 @@ boxplot_esc_ratio_per_xci_group <- function() {
   sig=res_10$sig
   D=res_10$D
 
+  if (is.null(human_xci)) {
   ind_escape=which((f1$class[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]=="Escape") &
                    f1$region[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]!="PAR")
 
@@ -39,6 +40,17 @@ boxplot_esc_ratio_per_xci_group <- function() {
   ind_inactive=which((f1$class[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]=="Inactive") &
                      f1$region[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]!="PAR")
 
+  } else {
+    ind_escape=which((human_xci[match(gene_ids,names(human_xci))]=="Escape") &
+                       f1$region[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]!="PAR")
+    
+    ind_variable=which((human_xci[match(gene_ids,names(human_xci))]=="Variable") &
+                         f1$region[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]!="PAR")
+    
+    ind_inactive=which((human_xci[match(gene_ids,names(human_xci))]=="Inactive") &
+                         f1$region[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]!="PAR")
+    
+  }
   escape=rowSums(sig[ind_escape,],na.rm=TRUE)/rowSums(!is.na(sig[ind_escape,]))
   inactive=rowSums(sig[ind_inactive,],na.rm=TRUE)/rowSums(!is.na(sig[ind_inactive,]))
   variable=rowSums(sig[ind_variable,],na.rm=TRUE)/rowSums(!is.na(sig[ind_variable,]))
@@ -54,7 +66,7 @@ boxplot_esc_ratio_per_xci_group <- function() {
   p.xci=ggplot(df.ie,aes(x=status,y=esc_ratio,color=status)) +
     geom_boxplot(outlier.shape = NA,size=1) +
     geom_point(position=position_jitterdodge()) +
-    stat_compare_means(comparisons = my_comparisons,method="wilcox.test",method.args = list(alternative = "greater")) +
+    stat_compare_means(comparisons = my_comparisons,method="wilcox.test",method.args = list(alternative = "greater"),size=5) +
     theme_minimal() +
     scale_color_manual(name = "Known XCI status in human tissues", breaks=c(c("Escape","Variable","Inactive")),values=c('red',"darkgoldenrod1",'blue')) +
     theme(legend.position = "none") +

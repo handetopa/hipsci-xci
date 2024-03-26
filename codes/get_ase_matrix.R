@@ -1,4 +1,4 @@
-get_ase_matrix <- function(include="all",mychr="X",mysex="female",min_ase_ratio_for_escape=0.1,xist_lim=1.5,include.na=FALSE,genes_orderby="pos",samples_orderby="xist",altern_hypt="greater",min_nonna_num=10) {
+get_ase_matrix <- function(include="all",mychr="X",mysex="female",min_ase_ratio_for_escape=0.1,xist_lim=1.5,include.na=FALSE,genes_orderby="pos",samples_orderby="xist",altern_hypt="greater",min_nonna_num=10,write_ase=FALSE,gene=NULL) {
 
   library(qvalue)
   library(ggplot2)
@@ -129,6 +129,20 @@ get_ase_matrix <- function(include="all",mychr="X",mysex="female",min_ase_ratio_
     gene_ase_ratio_weightedvar[im_notna,i]=gw_ase$gene_ase_ratio_weightedvar[im[im_notna]]
   }
   
+  if (write_ase==TRUE) {
+    library(formattable)
+    library("writexl")
+    ase_r=ase_ratios
+    ase_r=formattable(ase_r,format="f",digits=2)
+    ase_r=as.data.frame(ase_r)
+    colnames(ase_r)=commonfiles
+    ase_r$gene_name=gene_info$gene_name[match(gene_ids,gene_info$gene_id)]
+    ase_r$gene_id=gene_ids
+    ase_r$chr=as.character(mychr)
+    ase_r=ase_r[,dim(ase_r)[2]:1]
+    write_xlsx(ase_r,paste("/Users/topah/Desktop/hipsci_codes/data/ase_ratios/ase_ratios_",mychr,".xlsx",sep=""))
+  }
+  
   ttt=which((rowSums(!is.na(ase_ratios[,which(D$xist_group=="High-XIST female")])))>=min_nonna_num & (rowSums(!is.na(ase_ratios[,which(D$xist_group=="Low-XIST female")])))>=min_nonna_num)
   if (mychr=="X") {
     xist_ind=which(gene_ids==gene_info$gene_id[match("XIST",gene_info$gene_name)])
@@ -174,8 +188,14 @@ get_ase_matrix <- function(include="all",mychr="X",mysex="female",min_ase_ratio_
   colnames(sig)=commonfiles
   rownames(sig)=gene_ids
   
-  res=list(ase_ratios=ase_ratios,sig=sig,D=D,gene_info=gene_info,pval=pval,
+  if (!is.null(gene)) {
+    ind_gene=which(gene_info$gene_name==gene)
+    res=list(ase_ratios=ase_ratios[ind_gene,],low_l=low_l[ind_gene,],up_l=up_l[ind_gene,],D=D,gene_info=gene_info[ind_gene,],pval=pval[ind_gene,],
+             gene_minorCount=gene_minorCount[ind_gene,],gene_allCount=gene_allCount[ind_gene,],gene_num_variants=gene_num_variants[ind_gene,])
+  } else {
+    res=list(ase_ratios=ase_ratios,sig=sig,D=D,gene_info=gene_info,pval=pval,
            gene_minorCount=gene_minorCount,gene_allCount=gene_allCount,gene_num_variants=gene_num_variants)
+  }
   return(res)
 }
   

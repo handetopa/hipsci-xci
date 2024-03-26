@@ -1,4 +1,4 @@
-boxplot_esc_ratio_in_female_groups_per_xci_group <- function() {
+boxplot_esc_ratio_in_female_groups_per_xci_group <- function(human_xci=NULL) {
   
   chr="X"
   f1=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_mh2_new_FALSE_TRUE.txt")
@@ -30,7 +30,8 @@ boxplot_esc_ratio_in_female_groups_per_xci_group <- function() {
   gene_ids=res_10$gene_info$gene_id
   sig=res_10$sig
   D=res_10$D
-
+  
+  if (is.null(human_xci)) {
   ind_escape=which((f1$class[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]=="Escape") &
                    f1$region[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]!="PAR")
 
@@ -39,7 +40,16 @@ boxplot_esc_ratio_in_female_groups_per_xci_group <- function() {
 
   ind_inactive=which((f1$class[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]=="Inactive") &
                      f1$region[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]!="PAR")
-
+  } else {
+  ind_escape=which((human_xci[match(gene_ids,names(human_xci))]=="Escape") &
+                     f1$region[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]!="PAR")
+  
+  ind_variable=which((human_xci[match(gene_ids,names(human_xci))]=="Variable") &
+                       f1$region[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]!="PAR")
+  
+  ind_inactive=which((human_xci[match(gene_ids,names(human_xci))]=="Inactive") &
+                       f1$region[match(extract_text_before_first_dot(gene_ids),extract_text_before_first_dot(rownames(f1)))]!="PAR")
+  }
 
   high_escape=rowSums(sig[ind_escape,which(D$xist_group=="High-XIST female")],na.rm=TRUE)/rowSums(!is.na(sig[ind_escape,which(D$xist_group=="High-XIST female")]))
   high_inactive=rowSums(sig[ind_inactive,which(D$xist_group=="High-XIST female")],na.rm=TRUE)/rowSums(!is.na(sig[ind_inactive,which(D$xist_group=="High-XIST female")]))
@@ -68,7 +78,7 @@ boxplot_esc_ratio_in_female_groups_per_xci_group <- function() {
   p.xci.xist=ggplot(df.ie2,aes(x=status,y=esc_ratio,color=xist_group)) +
     geom_boxplot(outlier.shape = NA,size=1) +
     geom_point(position=position_jitterdodge()) +
-    stat_compare_means(aes(group = xist_group),method="wilcox.test",method.args = list(alternative = "greater",paired=TRUE)) + # writes wrong p-values to the plot!
+    stat_compare_means(aes(group = xist_group),method="wilcox.test",method.args = list(alternative = "greater",paired=TRUE),size=5) + # writes wrong p-values to the plot!
     theme_minimal() +
     scale_color_manual(name = "Female lines", breaks=c(c("low","high")),values=c("#FF99CC","#CC0033"),labels=c("Low-XIST","High-XIST")) +
     xlab("Known XCI status in human tissues") +
