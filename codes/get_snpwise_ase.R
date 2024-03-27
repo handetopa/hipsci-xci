@@ -1,16 +1,9 @@
-#ase_fileName1="/Users/topah/Desktop/hipsci_codes/data/ase_files/HPSI0215i-fawm_4.table"
-#ase_fileName1="/Users/topah/Desktop/hipsci_codes/data/ase_files/HPSI0614i-liqa_6.table"
-#ase_fileName1="/Users/topah/Desktop/hipsci_codes/data/ase_files/HPSI0314i-qaqx_1.table"
-#ase_fileName1="/Users/topah/Desktop/hipsci_codes/data/ase_files/HPSI0215i-fawm_4_ERR1629688.table"
-#ase_fileName2="/Users/topah/Desktop/hipsci_codes/data/ase_files/HPSI0215i-fawm_4_ERR1629678.table"
-# ase_files=list.files(path="/Users/topah/Desktop/hipsci_codes/data/ase_files/",pattern="*.table",full.names=TRUE)
-# source("/Users/topah/Desktop/hipsci_codes/codes/get_snpwise_ase.R")
-# ase_files=paste("/Users/topah/Desktop/hipsci_codes/data/ase_files/",D$lines,".table",sep="")
-# for (i in seq(1,length(ase_files))) {
-#    print(i)
-#    ase_fileName1=ase_files[i]
-#    get_snpwise_ase(ase_fileName1)
-# }
+# -----------------------------------------------------------
+# Script Name: get_snpwise_ase.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 get_snpwise_ase <- function(ase_fileName1,ase_fileName2=NULL,gene=NULL,chr=NULL,write_file=TRUE) {
   
   library(rdist)

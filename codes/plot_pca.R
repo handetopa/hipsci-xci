@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: plot_pca.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 plot_pca <- function(chr = "X", path) {
   
   load(file.path(path,"data/data_for_DE_new.RData"))

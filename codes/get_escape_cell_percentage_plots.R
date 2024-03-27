@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: get_escape_cell_percentage_plots.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 get_escape_cell_percentage_plots <- function(ddf,human_tissue_inactive_ratio=0.69,human_tissue_variable_ratio=0.16) {
   
   res=ddf

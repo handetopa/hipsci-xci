@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: plot_marker_genes.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 plot_marker_genes <- function(path) {
   
   library(ggplot2)
@@ -27,8 +33,6 @@ plot_marker_genes <- function(path) {
     geom_boxplot(outlier.shape=NA,size=1) +
     geom_point(position = position_jitterdodge(seed = 42),size=0.6) +
     theme_minimal() +
-    #geom_jitter(aes(color=Sex),size=0.5,shape=19) +
-    #scale_fill_discrete(labels=c("Female", "Male")) +
     ylab("NANOG expression (log-cpm)") +
     xlab("") +
     scale_color_manual(name = "", values=c("#3399FF","#CC0033","mediumorchid","#FF99CC")) +
@@ -48,8 +52,6 @@ plot_marker_genes <- function(path) {
     geom_boxplot(outlier.shape=NA,size=1) +
     geom_point(position = position_jitterdodge(seed = 42),size=0.6) +
     theme_minimal() +
-    #geom_jitter(aes(color=Sex),size=0.5,shape=19) +
-    #scale_fill_discrete(labels=c("Female", "Male")) +
     ylab("POU5F1 expression (log-cpm)") +
     xlab("") +
     scale_color_manual(name = "", values=c("#3399FF","#CC0033","mediumorchid","#FF99CC")) +

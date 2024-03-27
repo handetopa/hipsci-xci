@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: get_data_byLineCenter.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 get_data_byLineCenter <- function(path) {
   
   source(file.path(path,"codes/sum_counts_of_technical_reps.R"))

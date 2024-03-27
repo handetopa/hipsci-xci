@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: human_tissues_vs_hipsci_comparison.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 human_tissues_vs_hipsci_comparison <- function(human_xci,ddf,th_inactive=0,th_esc=0.25) {
   
   # Take the genes where info is available in both human adult tissues and ipscs

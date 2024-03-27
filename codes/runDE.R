@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: runDE.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 runDE <- function(path,dataForDE,comparison="MHL",celltype="ipsc",treatasind=FALSE,usesva=TRUE,by_cluster=TRUE) {
 
   library(edgeR)

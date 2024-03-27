@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: runDE_all.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 runDE_all <- function(path) {
   
   source(file.path(path,"codes/runDE.R"))

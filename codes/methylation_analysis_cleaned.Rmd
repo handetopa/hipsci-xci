@@ -1,0 +1,849 @@
+---
+title: "Compare methylation to HipSci DE genes"
+author: "Clara Benoit-Pilven"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r load_library, echo=FALSE}
+suppressPackageStartupMessages( library(readxl) )
+suppressPackageStartupMessages( library(rtracklayer) )
+suppressPackageStartupMessages( library(dplyr) )
+suppressPackageStartupMessages( library(ggplot2) )
+suppressPackageStartupMessages( library(tidyr) )
+```
+
+```{r set_workDir, echo=FALSE}
+setwd("/Users/benoicla/Desktop/Workspace/iPSC/draft/revision/review_analyses/methylation_analysis/")
+```
+
+# Load data
+
+## Load methylation data
+
+Load methylation data from Bansai et al., 2021.
+
+```{r load_methylation, echo=FALSE}
+methyl_bansai_data <- read.table("Bansal_2021_Table_S3.csv", sep = ",", header = TRUE)
+# format
+methyl_bansai_data <- methyl_bansai_data[, c(1,6:23)]
+```
+
+
+## Load HipSci sex-DE genes
+
+Load the 3 sets of sex-DE genes.
+
+```{r load_hipsci_sexDE, echo=FALSE}
+sexDE_MG1 <-  read_excel("Table_S7_toptable_ipsc_MG1.xlsx", sheet = 1)
+sexDE_MG1_auto <- sexDE_MG1[which(!sexDE_MG1$chr %in% c("X", "Y", "MT")),]
+sexDE_MG1_Xchr <- sexDE_MG1[which(sexDE_MG1$chr == "X"),]
+sexDE_MG2 <-  read_excel("Table_S8_toptable_ipsc_MG2.xlsx", sheet = 1)
+sexDE_MG2_auto <- sexDE_MG2[which(!sexDE_MG2$chr %in% c("X", "Y", "MT")),]
+sexDE_MG2_Xchr <- sexDE_MG2[which(sexDE_MG2$chr == "X"),]
+sexDE_MG3 <-  read_excel("Table_S9_toptable_ipsc_MG3.xlsx", sheet = 1)
+sexDE_MG3_auto <- sexDE_MG3[which(!sexDE_MG3$chr %in% c("X", "Y", "MT")),]
+sexDE_MG3_Xchr <- sexDE_MG3[which(sexDE_MG3$chr == "X"),]
+```
+
+Also load the different comparison betyween female groups.
+
+```{r load_hipsci_femaleGrpDE, echo=FALSE}
+DE_G1G3 <- read_excel("toptable_ipsc_G1G3.xlsx", sheet = 1)
+DE_G1G3_auto <- DE_G1G3[which(!DE_G1G3$chr %in% c("X", "Y", "MT")),]
+DE_G1G3_Xchr <- DE_G1G3[which(DE_G1G3$chr == "X"),]
+DE_G1G2 <- read_excel("toptable_ipsc_G1G2.xlsx", sheet = 1)
+DE_G1G2_auto <- DE_G1G2[which(!DE_G1G2$chr %in% c("X", "Y", "MT")),]
+DE_G1G2_Xchr <- DE_G1G2[which(DE_G1G2$chr == "X"),]
+DE_G3G2 <- read_excel("toptable_ipsc_G3G2.xlsx", sheet = 1)
+DE_G3G2_auto <- DE_G3G2[which(!DE_G3G2$chr %in% c("X", "Y", "MT")),]
+DE_G3G2_Xchr <- DE_G3G2[which(DE_G3G2$chr == "X"),]
+```
+
+
+## Load Gencode 26 annotation
+
+```{r load_annotation, echo=FALSE}
+gencode26_annot <- rtracklayer::import("/Users/benoicla/Desktop/Genome/Gencode_v26/gencode.v26.annotation.gtf.gz")
+gencode26 <- gencode26_annot[which(elementMetadata(gencode26_annot)$type == "gene"),]
+gencode26 <- data.frame(gene_id = elementMetadata(gencode26)$gene_id,
+                    gene_name = elementMetadata(gencode26)$gene_name,
+                    gene_type = elementMetadata(gencode26)$gene_type,
+                    chr = seqnames(gencode26),
+                    start = start(gencode26),
+                    end = end(gencode26),
+                    strand = strand(gencode26))
+```
+
+
+# Format and annotate the methylation data
+
+Annotate the probes with the cluster name from the Bansai et al., 2021 paper.
+
+```{r annotate_methyl_cluster, echo=FALSE}
+methyl_bansai_data$cluster_annot <- ifelse(methyl_bansai_data$passes_qval_threshold, sign(methyl_bansai_data$most_significant_delta)*methyl_bansai_data$most_significant_transition, 0)
+```
+
+Merge the different gene group annotation:
+- body + 3-UTR + 5UTR -> gene
+- TSS1500 + TSS200 -> promoter
+- OutsideTranscript3 + OutsideTranscript5 -> outside
+
+```{r annotate_methyl_geneGroup, echo=FALSE}
+methyl_bansai_data$gene_annot <- ifelse(methyl_bansai_data$hg38_refgene_group %in% c("body", "5_UTR", "3UTR"), 
+                                        "gene",
+                                        ifelse(methyl_bansai_data$hg38_refgene_group %in% c("TSS200", "TSS1500"),
+                                               "promoter",
+                                               ifelse(methyl_bansai_data$hg38_refgene_group %in% c("OutsideTranscript3", "OutsideTranscript5"),
+                                                      "outside",
+                                                      NA)))
+```
+
+Add the ensembl gene id to the methylation data using the gencode v26 annotation.
+
+```{r ensembl_annotate, echo=FALSE}
+methyl_bansai_data$gene_id <- NA
+for (i in 1:length(methyl_bansai_data$probe_id)){
+  tmpData <- methyl_bansai_data[i, ]
+  if (!is.na(tmpData$hg38_gene)){
+    #print(tmpData$hg38_gene)
+    # if gene name present in gencode26 annotation
+    if (tmpData$hg38_gene %in% gencode26$gene_name){
+      # check that the matching gencode26 gene is in the same chromosome
+      tmpGencode26 <- gencode26[which(gencode26$gene_name == tmpData$hg38_gene), ]
+      #print(tmpGencode26$chr)
+      if (dim(tmpGencode26)[1] > 1){
+        tmp2Gencode26 <- tmpGencode26[which(tmpGencode26$gene_type %in% c("protein_coding", "lincRNA")), ]
+        if (dim(tmp2Gencode26)[1] == 1){
+          methyl_bansai_data$gene_id[i] <- tmp2Gencode26$gene_id
+        } else{
+          next
+        }
+      } else if (tmpData$hg38_chr == tmpGencode26$chr){
+        methyl_bansai_data$gene_id[i] <- tmpGencode26$gene_id
+      } else{
+        warning("Gencode26 gene with matching name not in same chromosome...")
+        next
+      }
+    } else{
+      next
+    }
+  } else{
+    next
+  }
+}
+```
+
+To not bias the following enrichment analysis, we only keep the probes for which we managed to associate a gene id.
+
+```{r filer_methyl_data, echo=FALSE}
+methyl_bansai_data_filtered <- methyl_bansai_data[which(!is.na(methyl_bansai_data$gene_id)), ]
+```
+
+Separate the X chromosome probes from the autosomal probes.
+
+```{r separate_X_auto, echo=FALSE}
+print("> X chromosome")
+methyl_bansai_data_Xchr <- methyl_bansai_data_filtered[which(methyl_bansai_data_filtered$hg38_chr == "chrX"),]
+dim(methyl_bansai_data_Xchr)[1]
+print("> Autosomes")
+methyl_bansai_data_auto <- methyl_bansai_data_filtered[which(!methyl_bansai_data_filtered$hg38_chr %in% c("chrX", "chrY")),]
+dim(methyl_bansai_data_auto)[1]
+```
+
+
+# Enrichment analysis
+
+## Functions
+
+Function to compute enrichment p-value, depletion p-value with hypergenometric test and relative enrichment.
+
+```{r enrichment_function, echo=FALSE}
+enrichment <- function(DEresults, geneList, analysisName, pval_threshold = 0.05, direction = "both"){
+  if (direction == "both"){
+    DEresults_signif <- DEresults[which(DEresults$adj.P.Val < pval_threshold), ]
+  } else if (direction == "up"){
+    DEresults_signif <- DEresults[which(DEresults$adj.P.Val < pval_threshold & DEresults$logFC > 0), ]
+  } else if (direction == "down"){
+    DEresults_signif <- DEresults[which(DEresults$adj.P.Val < pval_threshold & DEresults$logFC < 0), ]
+  }
+  universe_nbr <- length(DEresults$gene_id)
+  DE_nbr <- length(DEresults_signif$gene_id)
+  geneList_nbr <- length(geneList)
+  # overlap
+  overlap_nbr <- length(intersect(DEresults_signif$gene_id, geneList))
+  # get enrichment stat and effect size
+  enrichment_stat_res <- enrichment_stat(overlap_nbr, geneList_nbr, DE_nbr, universe_nbr)
+  # format data
+  results <- data.frame("analysis" = analysisName, "direction" = direction, 
+                        "nbr_DE" = DE_nbr, "nbr_geneList" = geneList_nbr, 
+                        "overlap" = overlap_nbr, "N" = universe_nbr, 
+                        "pval_enrich" = enrichment_stat_res$pvalEnrich, 
+                        "pval_deple" = enrichment_stat_res$pvalDeple,
+                        "relative_enrich" = enrichment_stat_res$relatEnrich)
+  return(results)
+}
+
+
+enrichment_stat <- function(overlap_nbr, geneList_nbr, DE_nbr, universe_nbr){
+  # overall enrichment
+  #print(">> Enrichment")
+  pvalEnrich <- phyper(overlap_nbr-1, geneList_nbr, universe_nbr - geneList_nbr, DE_nbr, lower.tail = FALSE)
+  # overall depletion
+  #print(">> Depletion")
+  pvalDeple <-phyper(overlap_nbr,  geneList_nbr, universe_nbr -  geneList_nbr, DE_nbr, lower.tail = TRUE)
+  # effect size
+  #print(">> Relative enrichment")
+  relatEnrich <- (overlap_nbr/ geneList_nbr)/(DE_nbr/universe_nbr)
+  
+  return(list("pvalEnrich" = pvalEnrich, "pvalDeple" = pvalDeple, "relatEnrich" = relatEnrich))
+}
+```
+
+Function that do the enrichment analysis for the geneList of interest and a choosen number of random genesets.
+
+```{r enrichment_permut_function, echo=FALSE}
+enrichment_permut <- function(DEresults, geneList, analysisName, nbr_permut = 100, pval_threshold = 0.05, direction = "both"){
+  # enrichment for geneList
+  results_enrich_geneList <- enrichment(DEresults = DEresults, geneList = geneList, 
+                                        analysisName = analysisName, pval_threshold = pval_threshold,
+                                        direction = direction)
+  # enrichment for 'nbr_permut" random genesets of the same size of the geneList
+  length_geneList <- length(geneList)
+  results_enrich_randomGeneset <- results_enrich_geneList[0,]
+  for (i in 1:nbr_permut){
+    # select 'length_geneList' random genes from the universe
+    random_geneset <- sample(DEresults$gene_id, length_geneList)
+    # enrichment for this random geneset
+    results_enrich_randomGeneset_tmp <- enrichment(DEresults = DEresults, geneList = random_geneset, 
+                                                   analysisName = paste(analysisName, "random", sep = "_"), 
+                                                   pval_threshold = pval_threshold, direction = direction)
+    results_enrich_randomGeneset <- rbind(results_enrich_randomGeneset, results_enrich_randomGeneset_tmp)
+  }
+  results_enrich_geneList$pval_enrich_random <- paste(results_enrich_randomGeneset$pval_enrich, sep = ";", collapse = ";")
+  results_enrich_geneList$pval_deple_random <- paste(results_enrich_randomGeneset$pval_deple, sep = ";", collapse = ";")
+  results_enrich_geneList$relative_enrich_random <- paste(results_enrich_randomGeneset$relative_enrich, sep = ";", collapse = ";")
+  
+  return(results_enrich_geneList)
+}
+```
+
+Function to select gene list of interest.
+
+```{r select_geneList, echo=FALSE}
+select_methyl_geneList <- function(methylData, clusterNbr, direction, geneAnnot){
+  # possible values for parameters:
+  # clusterNbr: c(0, 1, 2, 3, 4, 5) More than 1 number can be given
+  # direction: c("both", "hypo", "hyper")
+  # geneAnnot: c("body", "promoter", "outside") More than 1 annotation can be given
+  if (direction == "both"){
+    clusterNbr_formated <- c(clusterNbr, -clusterNbr)
+  } else if (direction == "hyper"){
+    clusterNbr_formated <- clusterNbr
+  } else if (direction == "hypo"){
+    clusterNbr_formated <- -clusterNbr
+  }
+  geneList <- methylData$gene_id[which(methylData$cluster_annot %in% clusterNbr_formated &
+                                   methylData$gene_annot %in% geneAnnot)]
+  geneList <- unique(geneList[!is.na(geneList)])
+  return(geneList)
+}
+```
+
+Function to do the full analysis on one dataset.
+
+```{r enrichment1dataset_function, echo=FALSE}
+enrichment1dataset <- function(DEresults, analysisName, methylData, geneClusters, 
+                               geneListDirections, geneAnnots, pval_threshold = 0.05, 
+                               permut = TRUE, permutNbr = 1000, 
+                               directionName = c("up" = "up", "down" = "down")){
+  # init result object
+  if (permut){
+    enrichRes <- data.frame("analysis" = NA, "direction" = NA, "nbr_DE" = NA, "nbr_geneList" = NA, 
+                            "overlap" = NA, "N" = NA, "pval_enrich" = NA, "pval_deple" = NA, "relative_enrich" = NA,
+                            "pval_enrich_random" = NA, "pval_deple_random" = NA, "relative_enrich_random" = NA,
+                            "geneList" = NA)
+  } else{
+    enrichRes <- data.frame("analysis" = NA, "direction" = NA, "nbr_DE" = NA, "nbr_geneList" = NA, 
+                            "overlap" = NA, "N" = NA, "pval_enrich" = NA, "pval_deple" = NA, "relative_enrich" = NA,
+                            "geneList" = NA)
+  }
+  enrichRes <- enrichRes[0,]
+  
+  # loop throught the different conditions
+  analysisDirections <- c("both", "up", "down")
+  for (myCluster in geneClusters){
+    print(paste0(">>>> cluster -> ", paste0(as.character(myCluster), collapse = "")))
+    for (myGeneListDirection in geneListDirections){
+      print(paste0(">>> direction -> ", myGeneListDirection))
+      for (myGeneAnnot in geneAnnots){
+        print(paste0(">> annotation -> ", myGeneAnnot))
+        # select gene list
+        methyl_geneList_selected <- select_methyl_geneList(methylData = methylData, clusterNbr = myCluster,
+                                                           direction = myGeneListDirection, geneAnnot = myGeneAnnot)
+        for (myDirection in analysisDirections){
+          print(paste0("> ", myDirection))
+          # enrichment analysis
+          if (permut){
+            resTmp <- enrichment_permut(DEresults = DEresults, analysisName = analysisName, 
+                                        geneList = methyl_geneList_selected, pval_threshold = pval_threshold,
+                                        nbr_permut = permutNbr, direction = myDirection)
+          } else{
+            resTmp <- enrichment(DEresults = DEresults, analysisName = analysisName,
+                                 geneList = methyl_geneList_selected, pval_threshold = pval_threshold, 
+                                 direction = myDirection)
+          }
+          if (myDirection == "up"){
+            resTmp$direction <- directionName["up"]
+          } else if (myDirection == "down"){
+            resTmp$direction <- directionName["down"]
+          }
+          resTmp$geneList <- paste("Transition", paste0(myCluster, collapse = ""), myGeneListDirection, 
+                                   myGeneAnnot,  sep = "_")
+          # add results to the global enrichment abject
+          enrichRes <- rbind(enrichRes, resTmp)
+        }
+      }
+    }
+  }
+  return(enrichRes)
+}
+```
+
+
+
+## Analyses
+
+For each DE analysis, do an enrichment analysis of each gene cluster.
+
+```{r init_output_enrich, echo=FALSE}
+enrichRes <- data.frame("analysis" = NA, "direction" = NA, "nbr_DE" = NA, "nbr_geneList" = NA, 
+                        "overlap" = NA, "N" = NA, "pval_enrich" = NA, "pval_deple" = NA, "relative_enrich" = NA,
+                        "pval_enrich_random" = NA, "pval_deple_random" = NA, "relative_enrich_random" = NA,
+                        "geneList" = NA)
+enrichRes <- enrichRes[0,]
+```
+
+
+### MG1
+
+```{r enrich_MG1, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = sexDE_MG1, analysisName = "MG1", methylData = methyl_bansai_data,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "male", "down" = "female")))
+```
+
+```{r enrich_auto_MG1, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = sexDE_MG1_auto, analysisName = "MG1_auto", methylData = methyl_bansai_data_auto,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "male", "down" = "female")))
+```
+
+```{r enrich_Xchr_MG1, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = sexDE_MG1_Xchr, analysisName = "MG1_Xchr", methylData = methyl_bansai_data_Xchr,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "male", "down" = "female")))
+```
+
+### MG2
+
+```{r enrich_MG2, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = sexDE_MG2, analysisName = "MG2", methylData = methyl_bansai_data,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "male", "down" = "female")))
+```
+
+```{r enrich_auto_MG2, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = sexDE_MG2_auto, analysisName = "MG2_auto", methylData = methyl_bansai_data_auto,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "male", "down" = "female")))
+```
+
+```{r enrich_Xchr_MG2, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = sexDE_MG2_Xchr, analysisName = "MG2_Xchr", methylData = methyl_bansai_data_Xchr,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "male", "down" = "female")))
+```
+
+### MG3
+
+```{r enrich_MG3, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = sexDE_MG3, analysisName = "MG3", methylData = methyl_bansai_data,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "male", "down" = "female")))
+```
+
+```{r enrich_auto_MG3, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = sexDE_MG3_auto, analysisName = "MG3_auto", methylData = methyl_bansai_data_auto,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "male", "down" = "female")))
+```
+
+```{r enrich_Xchr_MG3, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = sexDE_MG3_Xchr, analysisName = "MG3_Xchr", methylData = methyl_bansai_data_Xchr,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "male", "down" = "female")))
+```
+
+
+### G1G2
+
+```{r enrich_G1G2, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = DE_G1G2, analysisName = "G1G2", methylData = methyl_bansai_data,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "up", "down" = "down")))
+```
+
+```{r enrich_auto_G1G2, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = DE_G1G2_auto, analysisName = "G1G2_auto", methylData = methyl_bansai_data_auto,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "up", "down" = "down")))
+```
+
+```{r enrich_Xchr_G1G2, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = DE_G1G2_Xchr, analysisName = "G1G2_Xchr", methylData = methyl_bansai_data_Xchr,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "up", "down" = "down")))
+```
+
+
+### G1G3
+
+```{r enrich_G1G3, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = DE_G1G3, analysisName = "G1G3", methylData = methyl_bansai_data,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "up", "down" = "down")))
+```
+
+```{r enrich_auto_G1G3, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = DE_G1G3_auto, analysisName = "G1G3_auto", methylData = methyl_bansai_data_auto,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "up", "down" = "down")))
+```
+
+```{r enrich_Xchr_G1G3, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = DE_G1G3_Xchr, analysisName = "G1G3_Xchr", methylData = methyl_bansai_data_Xchr,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "up", "down" = "down")))
+```
+
+
+### G3G2
+
+```{r enrich_G3G2, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = DE_G3G2, analysisName = "G3G2", methylData = methyl_bansai_data,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "up", "down" = "down")))
+```
+
+```{r enrich_auto_G3G2, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = DE_G3G2_auto, analysisName = "G3G2_auto", methylData = methyl_bansai_data_auto,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "up", "down" = "down")))
+```
+
+```{r enrich_Xchr_G3G2, echo=FALSE}
+directions <- c("both", "up", "down")
+enrichRes <- rbind(enrichRes,
+                   enrichment1dataset(DEresults = DE_G3G2_Xchr, analysisName = "G3G2_Xchr", methylData = methyl_bansai_data_Xchr,
+                                      geneClusters = list(c(1, 2, 3, 4, 5), c(1), c(2), c(3), c(4), c(5)),
+                                      geneListDirections = c("both", "hypo", "hyper"), geneAnnots = c("gene", "promoter"), 
+                                      pval_threshold = 0.05, permut = TRUE, permutNbr = 1000, 
+                                      directionName = c("up" = "up", "down" = "down")))
+```
+
+
+## Save the results
+
+```{r save_results, echo=FALSE}
+write.table(enrichRes, file = "bansal_enrichment_results.txt",
+            sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+```
+
+
+## Plots
+
+### Format data for plots
+
+First, format data for plots.
+
+```{r format4plot, echo=FALSE}
+enrichRes_formated <- enrichRes
+# create groups for facet
+enrichRes_formated$analysisGroup <- ifelse(enrichRes_formated$analysis %in% c("MG1", "MG2", "MG3", "MG1_auto", "MG2_auto", "MG3_auto", "MG1_Xchr", "MG2_Xchr", "MG3_Xchr"), "sex-DE", "DE between female groups")
+# add * for signif enrichment or depletion (with a threshold of 0.05)
+enrichRes_formated$signif <- ifelse(enrichRes_formated$relative_enrich > 1, 
+                                    ifelse(enrichRes_formated$pval_enrich<0.001, "*", ""),
+                                    ifelse(enrichRes_formated$pval_deple<0.001, "*", ""))
+# order the different direction of effect
+enrichRes_formated$direction <- factor(enrichRes_formated$direction,
+                                       levels = c("both", "female", "male", "down", "up"))
+# separate the gene list names in different columns
+enrichRes_formated <- enrichRes_formated %>% 
+  separate_wider_delim(cols = c(geneList), delim = "_", 
+                       names = c("ToRemove", "transition", "methylDirection", "methylAnnot")) %>% 
+  select(select = -c(ToRemove))
+# separate the analysis name in different columns and replace the NA created by "All"
+enrichRes_formated <- enrichRes_formated %>% 
+  separate_wider_delim(cols = c(analysis), delim = "_", names = c("DEanalysis", "DEannot"), 
+                       too_few = c("align_start"))
+enrichRes_formated$DEannot[is.na(enrichRes_formated$DEannot)] <- "All"
+# extract and transform the results for the random set of genes
+enrichRes_random_formated <- enrichRes_formated[, c("DEanalysis", "DEannot", "direction", "analysisGroup", "transition", "methylDirection", "methylAnnot", "pval_enrich_random", "pval_deple_random", "relative_enrich_random")] %>%
+  separate_longer_delim(cols = c(pval_enrich_random, pval_deple_random, relative_enrich_random), delim = ";")
+enrichRes_random_formated$pval_enrich_random <- as.numeric(enrichRes_random_formated$pval_enrich_random)
+enrichRes_random_formated$pval_deple_random <- as.numeric(enrichRes_random_formated$pval_deple_random)
+enrichRes_random_formated$relative_enrich_random <- as.numeric(enrichRes_random_formated$relative_enrich_random)
+```
+
+Also save this formated version of the enrichment results.
+
+```{r save_results_formated, echo=FALSE}
+write.table(enrichRes_formated, 
+            file = "/Users/benoicla/Desktop/Workspace/iPSC/draft/revision/review_analyses/methylation_analysis/bansal_enrichment_results_formated.txt",
+            sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+```
+
+### Plot
+
+For each of the 8 gene list (promoter/gene body hypo/hypermethylated on X-chr/autosomes), we plot each transition (separately) for all sex-DE analyses and for all 3 DE analysis between female groups.
+
+```{r plot_enrich_promoter_hypo_Xchr, echo=FALSE}
+# select data to plot
+enrichRes_random_selected <- enrichRes_random_formated[which(enrichRes_random_formated$direction != "both" &
+                                                               enrichRes_random_formated$methylDirection == "hypo" &
+                                                               enrichRes_random_formated$DEannot == "Xchr" &
+                                                               enrichRes_random_formated$transition != "12345" &
+                                                               enrichRes_random_formated$methylAnnot == "promoter"), ]
+enrichRes_selected <- enrichRes_formated[which(enrichRes_formated$direction != "both" &
+                                                 enrichRes_formated$methylDirection == "hypo" &
+                                                 enrichRes_formated$DEannot == "Xchr" &
+                                                 enrichRes_formated$transition != "12345" &
+                                                 enrichRes_formated$methylAnnot == "promoter"), ]
+# plot
+p <- ggplot(enrichRes_random_selected, aes(x = transition, y = relative_enrich_random, fill = direction, alpha = 0.6))
+p <- p + geom_violin()
+p <- p + geom_hline(yintercept = 1)
+p <- p + scale_fill_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + geom_point(data = enrichRes_selected, 
+                    aes(x = transition, y = relative_enrich, color = direction), position = position_dodge(0.9), size = 2, alpha = 1)
+p <- p + geom_text(data = enrichRes_selected, 
+                   aes(x = transition, y = ifelse(relative_enrich>1, relative_enrich + 0.1, relative_enrich - 0.3), label = signif), position = position_dodge(0.9), size = 4, alpha = 1)
+p <- p + scale_color_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + facet_wrap(~DEanalysis, ncol = 2, nrow = 3, scales = "free", drop = TRUE, dir = "v")
+p <- p + scale_y_continuous(trans=scales::pseudo_log_trans(base = 2))
+p <- p + theme_minimal()
+p <- p + xlab("") + ylab("Relative enrichment")
+p <- p + guides(alpha=FALSE)
+p
+# save plot
+ggsave(paste0("enrichment_plot_permutation_Xchr_hypo_promoter.pdf"),
+       path = "/Users/benoicla/Desktop/Workspace/iPSC/draft/revision/review_analyses/methylation_analysis/enrichment_plots/",
+       units = "cm", width = 18, height = 15)
+```
+
+```{r plot_enrich_promoter_hypo_auto, echo=FALSE}
+# select data to plot
+enrichRes_random_selected <- enrichRes_random_formated[which(enrichRes_random_formated$direction != "both" &
+                                                               enrichRes_random_formated$methylDirection == "hypo" &
+                                                               enrichRes_random_formated$DEannot == "auto" &
+                                                               enrichRes_random_formated$transition != "12345" &
+                                                               enrichRes_random_formated$methylAnnot == "promoter"), ]
+enrichRes_selected <- enrichRes_formated[which(enrichRes_formated$direction != "both" &
+                                                 enrichRes_formated$methylDirection == "hypo" &
+                                                 enrichRes_formated$DEannot == "auto" &
+                                                 enrichRes_formated$transition != "12345" &
+                                                 enrichRes_formated$methylAnnot == "promoter"), ]
+# plot
+p <- ggplot(enrichRes_random_selected, aes(x = transition, y = relative_enrich_random, fill = direction, alpha = 0.6))
+p <- p + geom_violin()
+p <- p + geom_hline(yintercept = 1)
+p <- p + scale_fill_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + geom_point(data = enrichRes_selected, 
+                    aes(x = transition, y = relative_enrich, color = direction), position = position_dodge(0.9), size = 2, alpha = 1)
+p <- p + geom_text(data = enrichRes_selected, 
+                   aes(x = transition, y = ifelse(relative_enrich>1, relative_enrich + 0.1, relative_enrich - 0.3), label = signif), position = position_dodge(0.9), size = 4, alpha = 1)
+p <- p + scale_color_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + facet_wrap(~DEanalysis, ncol = 2, nrow = 3, scales = "free", drop = TRUE, dir = "v")
+p <- p + scale_y_continuous(trans=scales::pseudo_log_trans(base = 2))
+p <- p + theme_minimal()
+p <- p + xlab("") + ylab("Relative enrichment")
+p <- p + guides(alpha=FALSE)
+p
+# save plot
+ggsave(paste0("enrichment_plot_permutation_auto_hypo_promoter.pdf"),
+       path = "/Users/benoicla/Desktop/Workspace/iPSC/draft/revision/review_analyses/methylation_analysis/enrichment_plots/",
+       units = "cm", width = 18, height = 15)
+```
+
+```{r plot_enrich_promoter_hyper_Xchr, echo=FALSE}
+# select data to plot
+enrichRes_random_selected <- enrichRes_random_formated[which(enrichRes_random_formated$direction != "both" &
+                                                               enrichRes_random_formated$methylDirection == "hyper" &
+                                                               enrichRes_random_formated$DEannot == "Xchr" &
+                                                               enrichRes_random_formated$transition != "12345" &
+                                                               enrichRes_random_formated$methylAnnot == "promoter"), ]
+enrichRes_selected <- enrichRes_formated[which(enrichRes_formated$direction != "both" &
+                                                 enrichRes_formated$methylDirection == "hyper" &
+                                                 enrichRes_formated$DEannot == "Xchr" &
+                                                 enrichRes_formated$transition != "12345" &
+                                                 enrichRes_formated$methylAnnot == "promoter"), ]
+# plot
+p <- ggplot(enrichRes_random_selected, aes(x = transition, y = relative_enrich_random, fill = direction, alpha = 0.6))
+p <- p + geom_violin()
+p <- p + geom_hline(yintercept = 1)
+p <- p + scale_fill_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + geom_point(data = enrichRes_selected, 
+                    aes(x = transition, y = relative_enrich, color = direction), position = position_dodge(0.9), size = 2, alpha = 1)
+p <- p + geom_text(data = enrichRes_selected, 
+                   aes(x = transition, y = ifelse(relative_enrich>1, relative_enrich + 0.1, relative_enrich - 0.3), label = signif), position = position_dodge(0.9), size = 4, alpha = 1)
+p <- p + scale_color_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + facet_wrap(~DEanalysis, ncol = 2, nrow = 3, scales = "free", drop = TRUE, dir = "v")
+p <- p + scale_y_continuous(trans=scales::pseudo_log_trans(base = 2))
+p <- p + theme_minimal()
+p <- p + xlab("") + ylab("Relative enrichment")
+p <- p + guides(alpha=FALSE)
+p
+# save plot
+ggsave(paste0("enrichment_plot_permutation_Xchr_hyper_promoter.pdf"),
+       path = "/Users/benoicla/Desktop/Workspace/iPSC/draft/revision/review_analyses/methylation_analysis/enrichment_plots/",
+       units = "cm", width = 18, height = 15)
+```
+
+```{r plot_enrich_promoter_hyper_auto, echo=FALSE}
+# select data to plot
+enrichRes_random_selected <- enrichRes_random_formated[which(enrichRes_random_formated$direction != "both" &
+                                                               enrichRes_random_formated$methylDirection == "hyper" &
+                                                               enrichRes_random_formated$DEannot == "auto" &
+                                                               enrichRes_random_formated$transition != "12345" &
+                                                               enrichRes_random_formated$methylAnnot == "promoter"), ]
+enrichRes_selected <- enrichRes_formated[which(enrichRes_formated$direction != "both" &
+                                                 enrichRes_formated$methylDirection == "hyper" &
+                                                 enrichRes_formated$DEannot == "auto" &
+                                                 enrichRes_formated$transition != "12345" &
+                                                 enrichRes_formated$methylAnnot == "promoter"), ]
+# plot
+p <- ggplot(enrichRes_random_selected, aes(x = transition, y = relative_enrich_random, fill = direction, alpha = 0.6))
+p <- p + geom_violin()
+p <- p + geom_hline(yintercept = 1)
+p <- p + scale_fill_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + geom_point(data = enrichRes_selected, 
+                    aes(x = transition, y = relative_enrich, color = direction), position = position_dodge(0.9), size = 2, alpha = 1)
+p <- p + geom_text(data = enrichRes_selected, 
+                   aes(x = transition, y = ifelse(relative_enrich>1, relative_enrich + 0.1, relative_enrich - 0.3), label = signif), position = position_dodge(0.9), size = 4, alpha = 1)
+p <- p + scale_color_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + facet_wrap(~DEanalysis, ncol = 2, nrow = 3, scales = "free", drop = TRUE, dir = "v")
+p <- p + scale_y_continuous(trans=scales::pseudo_log_trans(base = 2))
+p <- p + theme_minimal()
+p <- p + xlab("") + ylab("Relative enrichment")
+p <- p + guides(alpha=FALSE)
+p
+# save plot
+ggsave(paste0("enrichment_plot_permutation_auto_hyper_promoter.pdf"),
+       path = "/Users/benoicla/Desktop/Workspace/iPSC/draft/revision/review_analyses/methylation_analysis/enrichment_plots/",
+       units = "cm", width = 18, height = 15)
+```
+
+```{r plot_enrich_gene_hypo_Xchr, echo=FALSE}
+# select data to plot
+enrichRes_random_selected <- enrichRes_random_formated[which(enrichRes_random_formated$direction != "both" &
+                                                               enrichRes_random_formated$methylDirection == "hypo" &
+                                                               enrichRes_random_formated$DEannot == "Xchr" &
+                                                               enrichRes_random_formated$transition != "12345" &
+                                                               enrichRes_random_formated$methylAnnot == "gene"), ]
+enrichRes_selected <- enrichRes_formated[which(enrichRes_formated$direction != "both" &
+                                                 enrichRes_formated$methylDirection == "hypo" &
+                                                 enrichRes_formated$DEannot == "Xchr" &
+                                                 enrichRes_formated$transition != "12345" &
+                                                 enrichRes_formated$methylAnnot == "gene"), ]
+# plot
+p <- ggplot(enrichRes_random_selected, aes(x = transition, y = relative_enrich_random, fill = direction, alpha = 0.6))
+p <- p + geom_violin()
+p <- p + geom_hline(yintercept = 1)
+p <- p + scale_fill_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + geom_point(data = enrichRes_selected, 
+                    aes(x = transition, y = relative_enrich, color = direction), position = position_dodge(0.9), size = 2, alpha = 1)
+p <- p + geom_text(data = enrichRes_selected, 
+                   aes(x = transition, y = ifelse(relative_enrich>1, relative_enrich + 0.1, relative_enrich - 0.3), label = signif), position = position_dodge(0.9), size = 4, alpha = 1)
+p <- p + scale_color_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + facet_wrap(~DEanalysis, ncol = 2, nrow = 3, scales = "free", drop = TRUE, dir = "v")
+p <- p + scale_y_continuous(trans=scales::pseudo_log_trans(base = 2))
+p <- p + theme_minimal()
+p <- p + xlab("") + ylab("Relative enrichment")
+p <- p + guides(alpha=FALSE)
+p
+# save plot
+ggsave(paste0("enrichment_plot_permutation_Xchr_hypo_gene.pdf"),
+       path = "/Users/benoicla/Desktop/Workspace/iPSC/draft/revision/review_analyses/methylation_analysis/enrichment_plots/",
+       units = "cm", width = 18, height = 15)
+```
+
+```{r plot_enrich_gene_hypo_auto, echo=FALSE}
+# select data to plot
+enrichRes_random_selected <- enrichRes_random_formated[which(enrichRes_random_formated$direction != "both" &
+                                                               enrichRes_random_formated$methylDirection == "hypo" &
+                                                               enrichRes_random_formated$DEannot == "auto" &
+                                                               enrichRes_random_formated$transition != "12345" &
+                                                               enrichRes_random_formated$methylAnnot == "gene"), ]
+enrichRes_selected <- enrichRes_formated[which(enrichRes_formated$direction != "both" &
+                                                 enrichRes_formated$methylDirection == "hypo" &
+                                                 enrichRes_formated$DEannot == "auto" &
+                                                 enrichRes_formated$transition != "12345" &
+                                                 enrichRes_formated$methylAnnot == "gene"), ]
+# plot
+p <- ggplot(enrichRes_random_selected, aes(x = transition, y = relative_enrich_random, fill = direction, alpha = 0.6))
+p <- p + geom_violin()
+p <- p + geom_hline(yintercept = 1)
+p <- p + scale_fill_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + geom_point(data = enrichRes_selected, 
+                    aes(x = transition, y = relative_enrich, color = direction), position = position_dodge(0.9), size = 2, alpha = 1)
+p <- p + geom_text(data = enrichRes_selected, 
+                   aes(x = transition, y = ifelse(relative_enrich>1, relative_enrich + 0.1, relative_enrich - 0.3), label = signif), position = position_dodge(0.9), size = 4, alpha = 1)
+p <- p + scale_color_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + facet_wrap(~DEanalysis, ncol = 2, nrow = 3, scales = "free", drop = TRUE, dir = "v")
+p <- p + scale_y_continuous(trans=scales::pseudo_log_trans(base = 2))
+p <- p + theme_minimal()
+p <- p + xlab("") + ylab("Relative enrichment")
+p <- p + guides(alpha=FALSE)
+p
+# save plot
+ggsave(paste0("enrichment_plot_permutation_auto_hypo_gene.pdf"),
+       path = "/Users/benoicla/Desktop/Workspace/iPSC/draft/revision/review_analyses/methylation_analysis/enrichment_plots/",
+       units = "cm", width = 18, height = 15)
+```
+
+```{r plot_enrich_gene_hyper_Xchr, echo=FALSE}
+# select data to plot
+enrichRes_random_selected <- enrichRes_random_formated[which(enrichRes_random_formated$direction != "both" &
+                                                               enrichRes_random_formated$methylDirection == "hyper" &
+                                                               enrichRes_random_formated$DEannot == "Xchr" &
+                                                               enrichRes_random_formated$transition != "12345" &
+                                                               enrichRes_random_formated$methylAnnot == "gene"), ]
+enrichRes_selected <- enrichRes_formated[which(enrichRes_formated$direction != "both" &
+                                                 enrichRes_formated$methylDirection == "hyper" &
+                                                 enrichRes_formated$DEannot == "Xchr" &
+                                                 enrichRes_formated$transition != "12345" &
+                                                 enrichRes_formated$methylAnnot == "gene"), ]
+# plot
+p <- ggplot(enrichRes_random_selected, aes(x = transition, y = relative_enrich_random, fill = direction, alpha = 0.6))
+p <- p + geom_violin()
+p <- p + geom_hline(yintercept = 1)
+p <- p + scale_fill_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + geom_point(data = enrichRes_selected, 
+                    aes(x = transition, y = relative_enrich, color = direction), position = position_dodge(0.9), size = 2, alpha = 1)
+p <- p + geom_text(data = enrichRes_selected, 
+                   aes(x = transition, y = ifelse(relative_enrich>1, relative_enrich + 0.1, relative_enrich - 0.3), label = signif), position = position_dodge(0.9), size = 4, alpha = 1)
+p <- p + scale_color_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + facet_wrap(~DEanalysis, ncol = 2, nrow = 3, scales = "free", drop = TRUE, dir = "v")
+p <- p + scale_y_continuous(trans=scales::pseudo_log_trans(base = 2))
+p <- p + theme_minimal()
+p <- p + xlab("") + ylab("Relative enrichment")
+p <- p + guides(alpha=FALSE)
+p
+# save plot
+ggsave(paste0("enrichment_plot_permutation_Xchr_hyper_gene.pdf"),
+       path = "/Users/benoicla/Desktop/Workspace/iPSC/draft/revision/review_analyses/methylation_analysis/enrichment_plots/",
+       units = "cm", width = 18, height = 15)
+```
+
+```{r plot_enrich_gene_hyper_auto, echo=FALSE}
+# select data to plot
+enrichRes_random_selected <- enrichRes_random_formated[which(enrichRes_random_formated$direction != "both" &
+                                                               enrichRes_random_formated$methylDirection == "hyper" &
+                                                               enrichRes_random_formated$DEannot == "auto" &
+                                                               enrichRes_random_formated$transition != "12345" &
+                                                               enrichRes_random_formated$methylAnnot == "gene"), ]
+enrichRes_selected <- enrichRes_formated[which(enrichRes_formated$direction != "both" &
+                                                 enrichRes_formated$methylDirection == "hyper" &
+                                                 enrichRes_formated$DEannot == "auto" &
+                                                 enrichRes_formated$transition != "12345" &
+                                                 enrichRes_formated$methylAnnot == "gene"), ]
+# plot
+p <- ggplot(enrichRes_random_selected, aes(x = transition, y = relative_enrich_random, fill = direction, alpha = 0.6))
+p <- p + geom_violin()
+p <- p + geom_hline(yintercept = 1)
+p <- p + scale_fill_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + geom_point(data = enrichRes_selected, 
+                    aes(x = transition, y = relative_enrich, color = direction), position = position_dodge(0.9), size = 2, alpha = 1)
+p <- p + geom_text(data = enrichRes_selected, 
+                   aes(x = transition, y = ifelse(relative_enrich>1, relative_enrich + 0.1, relative_enrich - 0.3), label = signif), position = position_dodge(0.9), size = 4, alpha = 1)
+p <- p + scale_color_manual(values = c("female" = "red", "male" = "blue", "down" = "black", "up" = "grey"))
+p <- p + facet_wrap(~DEanalysis, ncol = 2, nrow = 3, scales = "free", drop = TRUE, dir = "v")
+p <- p + scale_y_continuous(trans=scales::pseudo_log_trans(base = 2))
+p <- p + theme_minimal()
+p <- p + xlab("") + ylab("Relative enrichment")
+p <- p + guides(alpha=FALSE)
+p
+# save plot
+ggsave(paste0("enrichment_plot_permutation_auto_hyper_gene.pdf"),
+       path = "/Users/benoicla/Desktop/Workspace/iPSC/draft/revision/review_analyses/methylation_analysis/enrichment_plots/",
+       units = "cm", width = 18, height = 15)
+```

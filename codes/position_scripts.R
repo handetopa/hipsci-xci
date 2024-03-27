@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: position_scripts.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 library(rdist)
 
 find_overlapping_genes <- function(biomart_object,gene="XIST") {

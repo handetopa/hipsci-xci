@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: boxplot_esc_ratio_per_xci_group.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 boxplot_esc_ratio_per_xci_group <- function(human_xci=NULL) {
   chr="X"
   f1=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_mh2_new_FALSE_TRUE.txt")

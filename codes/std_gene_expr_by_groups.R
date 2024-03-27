@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: std_gene_expr_by_groups.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 std_gene_expr_by_groups <- function() {
   
   path = "/Users/topah/Desktop/hipsci_codes"

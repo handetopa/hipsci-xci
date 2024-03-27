@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: mean_ase_by_groups.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 mean_ase_by_groups <- function() {
 
   path = "/Users/topah/Desktop/hipsci_codes"

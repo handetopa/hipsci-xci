@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: plot_heatmap_expr.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 plot_heatmap_expr <- function(res_10) {
   
   library(paletteer)

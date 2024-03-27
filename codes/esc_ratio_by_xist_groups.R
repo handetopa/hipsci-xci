@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: esc_ratio_by_xist_groups.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 esc_ratio_by_xist_groups <- function() {
   
   path = "/Users/topah/Desktop/hipsci_codes"

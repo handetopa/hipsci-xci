@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: get_ase_matrix.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 get_ase_matrix <- function(include="all",mychr="X",mysex="female",min_ase_ratio_for_escape=0.1,xist_lim=1.5,include.na=FALSE,genes_orderby="pos",samples_orderby="xist",altern_hypt="greater",min_nonna_num=10,write_ase=FALSE,gene=NULL) {
 
   library(qvalue)
@@ -40,10 +46,6 @@ get_ase_matrix <- function(include="all",mychr="X",mysex="female",min_ase_ratio_
   }
   
   print(table(D$xist_group))
-  #write.table(D,file="/Users/topah/Desktop/ase_plots/HipSci_metadata.txt",quote=FALSE,col.names = TRUE, row.names = FALSE, sep="\t")
-  
-  #load("/Users/topah/Desktop/ipsc_xist.RData")
-  #D$xist_cpm_log=xist2[match(D$lines,names(xist2))]
   
   genewise_ASEfiles=paste(commonfiles,"_min20_snpwiseASE_withGenePval.txt",sep="")
   genewise_ASEfiles=file.path(path=ga_path, genewise_ASEfiles)

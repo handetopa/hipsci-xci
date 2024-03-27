@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: density_aut_chrX.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 density_aut_chrX <- function() {
   
   source(file.path(path,"codes/get_ase_matrix.R"))

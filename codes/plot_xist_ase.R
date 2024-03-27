@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: plot_xist_ase.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 plot_xist_ase <- function() {
   
   source(file.path(path,"codes/get_ase_matrix.R"))

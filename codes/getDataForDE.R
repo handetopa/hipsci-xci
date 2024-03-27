@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: getDataForDE.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 getDataForDE <- function(path) {
   
   hipsci_datadir = file.path(path,"data")
@@ -54,13 +60,9 @@ getDataForDE <- function(path) {
   p=ggplot(df1, aes(x=variable, y=value,color=Sex)) + 
     geom_boxplot(outlier.shape=NA) +
     geom_point(position = position_jitterdodge(seed = 42),size=0.6) +
-    #geom_jitter(aes(color=Sex),size=0.5,shape=19) +
     scale_fill_discrete(labels=c("Female", "Male")) +
     ylab("Expression (log-cpm)") +
     xlab("Pluripotency marker genes") + 
-    #geom_text(label=lab1,x=0.8,y=c(-3.2),col="gray47",size=4) +
-    #geom_text(label=lab2,x=1.8,y=(-1.8),col="gray47",size=4) +
-    #geom_text(label=lab3,x=2.8,y=(-0.5),col="gray47",size=4) +
     theme(text = element_text(size = 20)) +
     theme(axis.text=element_text(size=20), axis.title=element_text(size=20))
   print(p)

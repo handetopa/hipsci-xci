@@ -1,5 +1,8 @@
-#Use G3 logFCs
-# Range and median for informative genes per cell lines.
+# -----------------------------------------------------------
+# Script Name: go_term_enrichment.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
 
 mh=read.table("/Users/topah/Documents/NC/DE_plots/DE_files/top.table_final_sva_dream_ipsc_mh2_new_FALSE_TRUE.txt")
 mh_aut=mh[which(mh$chrs != "X" & mh$chrs!="Y" & mh$chrs!="MT"),]
@@ -216,32 +219,3 @@ go_enrich <- enrichGO(gene = genes,
                       pvalueCutoff = 0.05,
                       qvalueCutoff = 0.10)
 G1_down=go_enrich@result
-
-
-
-
-
-
-
-
-
-
-#BiocManager::install("enrichplot")
-library(enrichplot)
-upsetplot(go_enrich)
-
-
-barplot(go_enrich, 
-        drop = TRUE, 
-        showCategory = 10, 
-        title = "GO Biological Pathways",
-        font.size = 8)
-
-
-dotplot(go_enrich)
-
-#
-emapplot(go_enrich)
-
-goplot(go_enrich, showCategory = 10)
-cnetplot(go_enrich, categorySize="pvalue", foldChange=gene_list)

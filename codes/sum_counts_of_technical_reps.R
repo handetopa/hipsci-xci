@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: sum_counts_of_technical_reps.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 sum_counts_of_technical_reps <- function(counts,hipsci_info,bycenter=TRUE) {
   
   sum_reps <- function(H,C,n) {
@@ -32,5 +38,3 @@ sum_counts_of_technical_reps <- function(counts,hipsci_info,bycenter=TRUE) {
   
   return(counts_new)
 }
-
-

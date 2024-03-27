@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: plot_heatmap.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 plot_heatmap <- function(res, min_nonna_num=10) {
   
   matr=res$sig

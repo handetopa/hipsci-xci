@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: violin_abslogfc_femalebiased_in_G1G2G3.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 violin_abslogfc_femalebiased_in_G1G2G3 <- function() {
   chr="X"
   f1=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_mh2_new_FALSE_TRUE.txt")
@@ -37,15 +43,10 @@ violin_abslogfc_femalebiased_in_G1G2G3 <- function() {
     scale_color_manual(name = "Female\ncell lines", breaks=c("Group 1","Group 2","Group 3"),values=c("#CC0033", "mediumorchid","#FF99CC")) +
     theme(legend.position = "none") +
     xlab("Female cell lines") +
-    #stat_compare_means() +
-    # stat_compare_means(ref.group = "Group 1", 
-    #                    method = "wilcox.test",
-    #                    method.args = list(alternative = "greater")) +
     theme(text = element_text(size=20)) 
   if (chr=="X") {
     p.effects = p.effects + ylab(expression("|Log"[2]*"(Fold change)|")) 
     ggsave("/Users/topah/Desktop/hipsci_codes/figures/female_biased_inG1G2G3_abslogfc_chrX_violin.pdf", p.effects, width=15,height=15,units="cm",limitsize = FALSE)
-    #ggsave("/Users/topah/Desktop/hipsci_codes/figures/male_biased_inG1_abslogfc_chrX_violin.pdf", p.effects, width=15,height=15,units="cm",limitsize = FALSE) # for male-biased
   }  else if (chr=="aut") {
     p.effects = p.effects + ylab("Absolute logFC in autosomal genes") 
     ggsave("/Users/topah/Desktop/hipsci_codes/figures/abslogfc_aut.pdf", p.effects, width=15,height=15,units="cm",limitsize = FALSE)

@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: gtex_xist_boxplots.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 # Download GTEx Analysis v8 RNA-seq gene read counts by tissue (https://gtexportal.org/home/downloads/adult-gtex/bulk_tissue_expression)
 # and place them in files folder. Also, download GTEx_Analysis_v8_Annotations_SubjectPhenotypesDS.txt from Metadata in GTEx portal.
 setwd("/Users/topah/Desktop/hipsci_codes/codes/gtex_gene_counts/files")

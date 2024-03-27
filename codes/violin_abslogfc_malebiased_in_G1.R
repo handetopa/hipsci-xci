@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: violin_abslogfc_malebiased_in_G1.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 violin_abslogfc_malebiased_in_G1 <- function() {
   chr="X"
   f1=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_mh2_new_FALSE_TRUE.txt")
@@ -38,10 +44,6 @@ violin_abslogfc_malebiased_in_G1 <- function() {
     scale_color_manual(name = "Female\ncell lines", breaks=c("Group 1","Group 2","Group 3"),values=c("#CC0033", "mediumorchid","#FF99CC")) +
     theme(legend.position = "none") +
     xlab("Female cell lines") +
-    #stat_compare_means() +
-    # stat_compare_means(ref.group = "Group 1", 
-    #                    method = "wilcox.test",
-    #                    method.args = list(alternative = "greater")) +
     theme(text = element_text(size=20)) 
   if (chr=="X") {
     p.effects = p.effects + ylab(expression("|Log"[2]*"(Fold change)|"))

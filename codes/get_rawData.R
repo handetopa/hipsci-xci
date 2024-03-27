@@ -1,3 +1,9 @@
+# -----------------------------------------------------------
+# Script Name: get_rawData.R
+# Author: Hande Topa
+# Date: 2024-03-20
+# -----------------------------------------------------------
+
 get_rawData <- function(path) {
   
   source(file.path(path,"codes/extract_text_before_first_dot.R"))
