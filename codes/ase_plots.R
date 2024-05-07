@@ -47,10 +47,6 @@ ase_plots <- function() {
   df.sig.1$num_inactive=rep(colSums(sig==FALSE,na.rm=TRUE),each=dim(sig)[1])
   df.sig.1$num_escape=rep(colSums(sig==TRUE,na.rm=TRUE),each=dim(sig)[1])
 
-
-
-
-
   df.new.2=data.frame(num_inactive=100*colSums(sig==FALSE,na.rm=TRUE)/(colSums(sig==FALSE,na.rm=TRUE)+colSums(sig==TRUE,na.rm=TRUE)),num_escape=100*colSums(sig==TRUE,na.rm=TRUE)/(colSums(sig==FALSE,na.rm=TRUE)+colSums(sig==TRUE,na.rm=TRUE)))
   df.new.2$lines=as.character(1:dim(sig)[2])
   df.new.2$lines=factor(df.new.2$lines, levels = df.new.2$lines)
@@ -60,12 +56,8 @@ ase_plots <- function() {
   ind_high=which(D$xist_group=="High-XIST female")
   ind_low=which(D$xist_group=="Low-XIST female")
 
+  clusters=read.table("data/female_clusters.txt",header=TRUE,sep="\t")
 
-  clusters=read.table("/Users/topah/Desktop/hipsci_codes/data/female_clusters.txt",header=TRUE,sep="\t")
-
-
-
-#df=data.frame(mean_ase=apply(ase_ratios,2,mean,na.rm=TRUE),esc_ratio=colSums(sig,na.rm=TRUE)/colSums(!is.na(sig)),xist=D$xist_cpm_log,xist_group=D$xist_group,clusters=clusters$clusterName[match(commonfiles,clusters$lines)])
   df=data.frame(mean_ase=apply(ase_ratios,2,mean,na.rm=TRUE),median_ase=apply(ase_ratios,2,median,na.rm=TRUE),esc_ratio=colSums(sig,na.rm=TRUE)/colSums(!is.na(sig)),xist=D$xist_cpm_log,xist_group=D$xist_group,clusters=clusters$clusterName[match(D$lines,clusters$lines)])
   df$xist_group=as.factor(df$xist_group)
   levels(df$xist_group)[levels(df$xist_group)=="High-XIST female"]="High-XIST"
@@ -76,7 +68,6 @@ ase_plots <- function() {
   levels(df$clusters)[levels(df$clusters)=="low"]="Group 3"
 
   library(ggpubr)
-
   p0=ggplot(df,aes(x=xist_group,y=median_ase,color=xist_group)) +
     geom_boxplot(outlier.shape = NA, size=1) +
     geom_jitter(shape=16, position=position_jitter(0.2)) +
@@ -156,11 +147,11 @@ ase_plots <- function() {
   wilcox.test(df$mean_ase[which(df$clusters=="Group 2")],df$mean_ase[which(df$clusters=="Group 3")])$p.value
   #[1] 0.01889344
 
-  ggsave("/Users/topah/Desktop/deneme/median_ase_xist_groups.pdf", p0, width=15,height=10,units="cm",limitsize = FALSE)
-  ggsave("/Users/topah/Desktop/deneme/esc_ratio_xist_groups.pdf", p1, width=15,height=10,units="cm",limitsize = FALSE)
-  ggsave("/Users/topah/Desktop/deneme/mean_ase_xist_groups.pdf", p2, width=15,height=10,units="cm",limitsize = FALSE)
-  ggsave("/Users/topah/Desktop/deneme/esc_ratio_clusters.pdf", p3, width=15,height=10,units="cm",limitsize = FALSE)
-  ggsave("/Users/topah/Desktop/deneme/mean_ase_clusters.pdf", p4, width=15,height=10,units="cm",limitsize = FALSE)
+  ggsave("figures/median_ase_xist_groups.pdf", p0, width=15,height=10,units="cm",limitsize = FALSE)
+  ggsave("figures/esc_ratio_xist_groups.pdf", p1, width=15,height=10,units="cm",limitsize = FALSE)
+  ggsave("figures/mean_ase_xist_groups.pdf", p2, width=15,height=10,units="cm",limitsize = FALSE)
+  ggsave("figures/esc_ratio_clusters.pdf", p3, width=15,height=10,units="cm",limitsize = FALSE)
+  ggsave("figures/mean_ase_clusters.pdf", p4, width=15,height=10,units="cm",limitsize = FALSE)
 
   p5=ggplot(df, aes(x=xist,y=esc_ratio)) +
     geom_point(aes(colour=clusters)) +
@@ -173,7 +164,7 @@ ase_plots <- function() {
     ylim(0,1) +
     theme(text = element_text(size=20)) 
 
-  ggsave("/Users/topah/Desktop/deneme/kmeans_cluster.pdf", p5, height=13,width=18,units="cm",limitsize = FALSE)
+  ggsave("figures/kmeans_cluster.pdf", p5, height=13,width=18,units="cm",limitsize = FALSE)
 
   #res_X=get_ase_info(include="all",mychr="X",mysex="female",min_ase_ratio_for_escape=0.1,xist_lim=1.5,include.na=FALSE,genes_orderby="pos",samples_orderby="xist",altern_hypt="greater",min_nonna_num=10,gene_list=NULL,known_type=NULL) 
   min_nonna_num=10
@@ -282,7 +273,7 @@ ase_plots <- function() {
     ylab("Average total number of\nreads per gene") +
     theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) +
     theme(text = element_text(size=20)) 
-  ggsave("/Users/topah/Desktop/deneme/avg_tot_num_reads_per_gene_columns.pdf", p.4, height=10,width=52,units="cm",limitsize = FALSE)
+  ggsave("figures/avg_tot_num_reads_per_gene_columns.pdf", p.4, height=10,width=52,units="cm",limitsize = FALSE)
 
 
   p.5=ggplot(data=DF.columnwise, aes(x=cells, y=num_genes_all)) +
@@ -313,7 +304,6 @@ ase_plots <- function() {
 
   cor.test(dff1$num_observed_genes_min10lines_filtered, dff1$XIST_logCPM, method="spearman", use = "complete.obs")
   cor.test(dff1$avg_reads_per_gene_min10lines_filtered, dff1$XIST_logCPM, method="spearman", use = "complete.obs") 
-
 
   # overall_p <- function(my_model) {
   #   f <- summary(my_model)$fstatistic

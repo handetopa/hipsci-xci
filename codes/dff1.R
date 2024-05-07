@@ -22,7 +22,7 @@ get_dff1 <- function() {
   n_samples=dim(sig)[2]
 
   library("readxl")
-  escape_genes=as.data.frame(read_excel("/Users/topah/Desktop/hipsci_codes/data/escape_genes.xlsx",col_names = TRUE, skip = 1))
+  escape_genes=as.data.frame(read_excel("data/escape_genes.xlsx",col_names = TRUE, skip = 1))
   human_xci=escape_genes$`Combined XCI status`[match(gene_info$gene_id,escape_genes$`Gene ID`)]
   human_xci[which(is.na(human_xci))]="Unknown"
   human_xci[which(human_xci=="escape")]="Escape"
@@ -70,12 +70,10 @@ get_dff1 <- function() {
   ddf$fraction_escape_Group2=ddf$num_escape_Group2/ddf$num_observed_Group2
   ddf$fraction_escape_Group3=ddf$num_escape_Group3/ddf$num_observed_Group3
 
-
   t.test(colSums(sig[,which(D$xist_group=="High-XIST female")],na.rm=TRUE)/colSums(!is.na(sig[,which(D$xist_group=="High-XIST female")]),na.rm=TRUE),
        colSums(sig[,which(D$xist_group=="Low-XIST female")],na.rm=TRUE)/colSums(!is.na(sig[,which(D$xist_group=="Low-XIST female")]),na.rm=TRUE))$p.value # 1.308153e-08
   t.test(colSums(sig[,which(D$xist_group=="High-XIST female")],na.rm=TRUE)/colSums(!is.na(sig[,which(D$xist_group=="High-XIST female")]),na.rm=TRUE))
   t.test(colSums(sig[,which(D$xist_group=="Low-XIST female")],na.rm=TRUE)/colSums(!is.na(sig[,which(D$xist_group=="Low-XIST female")]),na.rm=TRUE))
-
 
   ind=c(which(gene_info$gene_name=="XIST"),which(ddf$num_observed_highXIST>=10 & ddf$num_observed_lowXIST>=10))
   ind=sort(ind)
@@ -89,7 +87,6 @@ get_dff1 <- function() {
 
   sum(rowSums(sig[ind,],na.rm=TRUE)/rowSums(!is.na(sig[ind,]),na.rm=TRUE)>0.25)
   sum(rowSums(sig[ind,],na.rm=TRUE)/rowSums(!is.na(sig[ind,]),na.rm=TRUE)>0.5)
-
 
   min_nonna_num=10
   mychr="X"
@@ -142,11 +139,9 @@ get_dff1 <- function() {
   names(df.sig)[which(names(df.sig)=="wilcox.pvalue")]="diff_median_ASE_wilcox.pvalue"
   names(df.sig)[which(names(df.sig)=="fisher.pvalue")]="diff_fraction_escape_fisher.pvalue"
 
-  #write_xlsx(df.sig,"/Users/topah/Desktop/deneme/ASE_summary_X-chr_genes.xlsx")
+  #write_xlsx(df.sig,"ASE_summary_X-chr_genes.xlsx")
   save(df.sig, file = "data/dff2.RData")
-
   #####
-
   dff1=data.frame(cell_line=D$lines,XIST_logCPM=D$xist_cpm_log,XIST_group=D$xist_group,XIST_cluster=clusts)
   dff1$mean_ASE=apply(ase_ratios,2,mean,na.rm=TRUE)
   dff1$median_ASE=apply(ase_ratios,2,median,na.rm=TRUE)
@@ -158,9 +153,6 @@ get_dff1 <- function() {
   dff1$XIST_cluster[which(dff1$XIST_cluster=="high")]="Group1"
 
   dff1=dff1[dim(dff1)[1]:1,]
-
-
-
 
   t.test(dff1$fraction_of_genes_escaping[which(dff1$XIST_group=="Low-XIST female")],dff1$fraction_of_genes_escaping[which(dff1$XIST_group=="High-XIST female")]) # Figure 2A
   wilcox.test(dff1$fraction_of_genes_escaping[which(dff1$XIST_cluster=="Group1")],dff1$fraction_of_genes_escaping[which(dff1$XIST_cluster=="Group2")])$p.value # Figure 3B
@@ -208,14 +200,8 @@ get_dff1 <- function() {
   dff1$XIST_cluster[which(dff1$XIST_cluster=="high")]="Group1"
 
   dff1=dff1[dim(dff1)[1]:1,]
-
-  #write_xlsx(dff1,"/Users/topah/Desktop/deneme/ASE_summary_X-chr_female_iPSC_lines.xlsx")
-
+  #write_xlsx(dff1,"ASE_summary_X-chr_female_iPSC_lines.xlsx")
   sum(dff1$XIST_is_monoallelic_binom.pval<0.05,na.rm=TRUE)/sum(!is.na(dff1$XIST_is_monoallelic_binom.pval),na.rm=TRUE) # 0.75
-
   plot(dff1$XIST_ASE,dff1$median_ASE)
-
-
   save(dff1, file = "data/dff1.RData")
 }
-
