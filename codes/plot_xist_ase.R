@@ -37,8 +37,8 @@ plot_xist_ase <- function(path) {
     theme_minimal() +
     theme(text = element_text(size=20))
   
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/xist_ase.pdf", p_xist_ase, width=15,height=10,units="cm",limitsize = FALSE)
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/x_ase_density.pdf", p_x_ase_density, width=10,height=10,units="cm",limitsize = FALSE)
+  ggsave("figures/xist_ase.pdf", p_xist_ase, width=15,height=10,units="cm",limitsize = FALSE)
+  ggsave("figures/x_ase_density.pdf", p_x_ase_density, width=10,height=10,units="cm",limitsize = FALSE)
   
   ase_ratios_clonal=ase_ratios[,which(res_xist$pval<0.05)]
   ase_ratios_nonclonal=ase_ratios[,which(res_xist$pval>=0.05)]
@@ -79,7 +79,7 @@ plot_xist_ase <- function(path) {
     stat_compare_means(size=6) +
     theme(text = element_text(size=20)) 
   
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/clonality_xchr_escape_ratio_unicolor.pdf", p1, width=20,height=15,units="cm",limitsize = FALSE)
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/clonality_xchr_median_ase_unicolor.pdf", p2, width=20,height=15,units="cm",limitsize = FALSE)
+  ggsave("figures/clonality_xchr_escape_ratio_unicolor.pdf", p1, width=20,height=15,units="cm",limitsize = FALSE)
+  ggsave("figures/clonality_xchr_median_ase_unicolor.pdf", p2, width=20,height=15,units="cm",limitsize = FALSE)
 
 }
