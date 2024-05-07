@@ -78,7 +78,7 @@ plot_heatmap <- function(res, min_nonna_num=10) {
     theme(plot.margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")) 
   
   library("readxl")
-  escape_genes=as.data.frame(read_excel("/Users/topah/Desktop/hipsci_codes/data/escape_genes.xlsx",col_names = TRUE, skip = 1))
+  escape_genes=as.data.frame(read_excel("data/escape_genes.xlsx",col_names = TRUE, skip = 1))
   human_xci=escape_genes$`Combined XCI status`[match(res_10$gene_info$gene_id,escape_genes$`Gene ID`)]
   human_xci[which(is.na(human_xci))]="Unknown"
   human_xci[which(human_xci=="escape")]="Escape"
@@ -118,7 +118,7 @@ plot_heatmap <- function(res, min_nonna_num=10) {
     draw_plot(myp, x = 0.15, y = 0, width = .85, height = 1) +
     draw_plot(p_xci, x = 0, y = 0.0331, width = .15, height = 0.92) 
   
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/x_chr_heatmap_ase_ratios.pdf", ppp, width=65,height=70,units="cm",limitsize = FALSE)
+  ggsave("figures/x_chr_heatmap_ase_ratios.pdf", ppp, width=65,height=70,units="cm",limitsize = FALSE)
   
   return(res_10)
 }

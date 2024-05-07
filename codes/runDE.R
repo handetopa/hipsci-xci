@@ -164,7 +164,7 @@ runDE <- function(path,dataForDE,comparison="MHL",celltype="ipsc",treatasind=FAL
   colnames(nbrs)=nbr_colnames
   if (celltype=="ipsc") { 
     ind1=c(which(grepl(comparison, colnames(fit1$coefficients), fixed = TRUE)),which(grepl("sex_group", colnames(fit1$coefficients), fixed = TRUE)))
-    metadata_df=as.data.frame(fit1$coefficients[,ind1]) # Is this same as mean(E*weights) ?
+    metadata_df=as.data.frame(fit1$coefficients[,ind1])
     metadata_df_colnames=c(paste(sub('.*sex_group', '', colnames(fit1$coefficients)[ind1]),"Mean",sep=""),
                            paste(sub('.*sex_group', '', colnames(fit1$coefficients)[ind1]),"Var",sep=""))
     metadata_var=lapply(fit1$cov.coefficients.list, function (x) diag((x[ind1,ind1])))
@@ -175,7 +175,7 @@ runDE <- function(path,dataForDE,comparison="MHL",celltype="ipsc",treatasind=FAL
     metadata_df$dof=fit1$df.total[,which(colnames(fit1$df.total)==comparison)]
   } else {
     ind1=c(which(grepl(comparison, colnames(fit1$coefficients), fixed = TRUE)),which(grepl("sex_group", colnames(fit1$coefficients), fixed = TRUE)))
-    metadata_df=as.data.frame(fit1$coefficients[,ind1]) # Is this same as mean(E*weights) ?
+    metadata_df=as.data.frame(fit1$coefficients[,ind1])
     metadata_df_colnames=c(paste(sub('.*sex_group', '', colnames(fit1$coefficients)[ind1]),"Mean",sep=""))
     colnames(metadata_df)=metadata_df_colnames
     metadata_df=cbind(metadata_df,nbrs)

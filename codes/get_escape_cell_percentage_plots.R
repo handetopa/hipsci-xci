@@ -41,7 +41,7 @@ get_escape_cell_percentage_plots <- function(ddf,human_tissue_inactive_ratio=0.6
     scale_y_continuous(breaks=c(0,0.25,0.5,0.75,1),labels=c(0,25,50,75,100)) +
     theme(text = element_text(size=20)) 
   
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/escape_ratio_density_clusters.pdf", p_density, width=18,height=10,units="cm",limitsize = FALSE)
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/escape_ratio_cumulative_with_ref_human_tissues_clusters.pdf", p_cumulative, width=18,height=15,units="cm",limitsize = FALSE)
+  ggsave("figures/escape_ratio_density_clusters.pdf", p_density, width=18,height=10,units="cm",limitsize = FALSE)
+  ggsave("figures/escape_ratio_cumulative_with_ref_human_tissues_clusters.pdf", p_cumulative, width=18,height=15,units="cm",limitsize = FALSE)
   
 }

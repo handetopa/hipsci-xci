@@ -4,18 +4,17 @@
 # Date: 2024-03-20
 # -----------------------------------------------------------
 
-std_gene_expr_by_groups <- function() {
+std_gene_expr_by_groups <- function(path) {
   
-  path = "/Users/topah/Desktop/hipsci_codes"
   source(file.path(path,"codes/get_ase_matrix.R"))
   res=get_ase_matrix(include="all",mychr="X",mysex="female",min_ase_ratio_for_escape=0.1,xist_lim=1.5,include.na=FALSE,genes_orderby="pos",samples_orderby="xist",altern_hypt="greater",min_nonna_num=0)
   source(file.path(path,"codes/plot_heatmap.R"))
   res_10=plot_heatmap(res=res, min_nonna_num=10)
   D=res_10$D
-  source("/Users/topah/Desktop/hipsci_codes/codes/extract_text_before_first_dot.R")
-  load("/Users/topah/Desktop/hipsci_codes/data/data_for_DE_new.RData")
+  source(file.path(path,"codes/extract_text_before_first_dot.R"))
+  load(file.path(path,"data/data_for_DE_new.RData"))
   
-  clusters=read.table("/Users/topah/Desktop/hipsci_codes/data/female_clusters.txt",header=TRUE,sep="\t")
+  clusters=read.table("data/female_clusters.txt",header=TRUE,sep="\t")
   D$xist_group=clusters$clusterName[match(D$lines,clusters$lines)]
   D$xist_group[which(D$sex=="male")]="male"
   
@@ -44,7 +43,7 @@ std_gene_expr_by_groups <- function() {
     scale_x_discrete(breaks=c("G1","G2","G3"),labels=c("Group 1","Group 2","Group 3")) +
     theme(text = element_text(size=20)) 
   
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/std_gene_expr_by_groups.pdf", p.expr, width=15,height=15,units="cm",limitsize = FALSE)
+  ggsave("figures/std_gene_expr_by_groups.pdf", p.expr, width=15,height=15,units="cm",limitsize = FALSE)
 
   # Paired t.test
   t.test(df_stdexpr$expr[which(df_stdexpr$xist_group=="G1")],df_stdexpr$expr[which(df_stdexpr$xist_group=="G2")],paired=TRUE)$p.value

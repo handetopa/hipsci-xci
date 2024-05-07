@@ -4,7 +4,7 @@
 # Date: 2024-03-20
 # -----------------------------------------------------------
 
-plot_xist_ase <- function() {
+plot_xist_ase <- function(path) {
   
   source(file.path(path,"codes/get_ase_matrix.R"))
   res=get_ase_matrix(include="all",mychr="X",mysex="female",min_ase_ratio_for_escape=0.1,xist_lim=1.5,include.na=FALSE,genes_orderby="pos",samples_orderby="xist",altern_hypt="greater",min_nonna_num=0)

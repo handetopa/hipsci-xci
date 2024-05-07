@@ -69,7 +69,6 @@ find_overlapping_positions <- function(biomart_object,gene1="XIST",gene2="TSIX")
 
 }
 
-
 find_positions <- function(biomart_object,chr=NULL,select_gene=NULL,omit_gene=NULL,ensembl=TRUE) {
   
   if (!is.null(select_gene)) {
@@ -94,9 +93,7 @@ find_positions <- function(biomart_object,chr=NULL,select_gene=NULL,omit_gene=NU
       r=r[-which(rownames(r)==omit_gene),]
     }
   }
-  
   return(r)
-
 }
 
 
@@ -126,9 +123,7 @@ get_variant_info <- function(ase, chr, select_position_vector=NULL, omit_positio
       r=r[-exc,]
     }
   }
-  
   return(r)
-  
 }
 
 get_ase_ratio <- function(variant_info,overlapping_info=NULL) {
@@ -161,8 +156,6 @@ get_ase_ratio2 <- function(variant_info,overlapping_info=NULL,alpha=4,beta=4,tes
   beta_post=beta+n_-y_
   weighted_mean=sum(Ep/Vp)/sum(1/Vp)
   weighted_var=1/sum(1/Vp)
-  #loglik_bial=dbeta(0.5, alpha_post, beta_post, ncp = 0, log = TRUE)
-  #loglik_monoal=dbeta(0, alpha_post, beta_post, ncp = 0, log = TRUE)
   snp_ratios=pmin(variant_info$refCount,variant_info$altCount)/(variant_info$refCount+variant_info$altCount)
   r1=mean(pmin(variant_info$refCount,variant_info$altCount)/(variant_info$refCount+variant_info$altCount)) # mean of snp ratios
   r2=sum(pmin(variant_info$refCount,variant_info$altCount))/sum(variant_info$refCount+variant_info$altCount) # sum over snps
@@ -170,12 +163,9 @@ get_ase_ratio2 <- function(variant_info,overlapping_info=NULL,alpha=4,beta=4,tes
     gene_minorAllele=sum(pmin(variant_info$refCount,variant_info$altCount))
     gene_allAllele=sum(variant_info$refCount+variant_info$altCount)
     p.val=binom.test(sum(pmin(variant_info$refCount,variant_info$altCount)), sum(variant_info$refCount+variant_info$altCount), test.value, alternative = "less")$p.value 
-    #res=list(ase_ratio_gene_sumsnps=r2,p.value.binom=p.val,ase_ratio_gene_meansnps=r1,ase_ratio_gene_weightedMean=weighted_mean,ase_ratio_gene_weightedVar=weighted_var,
-    #         t=NA,p.value.t=NA,num_variants=num_variants,variant_info=variant_info,snp_ratios=snp_ratios,snp_ratios_postMean=Ep,snp_ratios_postVar=Vp,alpha_post=alpha_post,beta_post=beta_post)
     #if (num_variants>1) {
       t=(weighted_mean-test.value)/sqrt(weighted_var)
       p.val.t=pnorm(t, mean = 0, sd = 1, lower.tail = TRUE) 
-      #p.val.t=pt(q=t, df=num_variants-1, lower.tail=TRUE)
       res=list(ase_ratio_gene_sumsnps=r2,p.value.binom=p.val,ase_ratio_gene_meansnps=r1,ase_ratio_gene_weightedMean=weighted_mean,ase_ratio_gene_weightedVar=weighted_var,
                t=t,p.value.t=p.val.t,num_variants=num_variants,variant_info=variant_info,snp_ratios=snp_ratios,snp_ratios_postMean=Ep,snp_ratios_postVar=Vp,alpha_post=alpha_post,beta_post=beta_post,gene_minorCount=gene_minorAllele,gene_allCount=gene_allAllele)
     #}
@@ -207,15 +197,9 @@ get_alt_allele <- function(variant_info) {
 }
 
 name2id <- function(biomart_object,name) {
-
   return(biomart_object$ensembl_gene_id[match(name,biomart_object$external_gene_id)])
-  #return(biomart_object$ensembl_gene_id[which(biomart_object$external_gene_id==name)])
-  
 }
     
 id2name <- function(biomart_object,id) {
-  
   return(biomart_object$external_gene_id[match(id,biomart_object$ensembl_gene_id)])
-  #return(biomart_object$external_gene_id[which(biomart_object$ensembl_gene_id==id)])
-  
 }

@@ -7,8 +7,8 @@
 plot_heatmap_expr <- function(res_10) {
   
   library(paletteer)
-  source("/Users/topah/Desktop/hipsci_codes/codes/extract_text_before_first_dot.R")
-  load("/Users/topah/Desktop/hipsci_codes/data/data_for_DE_new.RData")
+  source("codes/extract_text_before_first_dot.R")
+  load("data/data_for_DE_new.RData")
   gene_ids_filtered2=rownames(res_10$sig)
   cpm_log_filtered=cpm_log[match(extract_text_before_first_dot(gene_ids_filtered2),extract_text_before_first_dot(rownames(cpm_log))),match(res_10$D$lines,sub('_[^_]*$', '', colnames(cpm_log)))]
   rm.ind=which(rowSums(is.na(cpm_log_filtered))>0)
@@ -63,10 +63,10 @@ plot_heatmap_expr <- function(res_10) {
     theme(strip.text.x = element_text(size=35)) +
     theme(plot.margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
   
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/x_chr_heatmap_gene_expression.pdf", myp, width=55,height=70,units="cm",limitsize = FALSE)
+  ggsave("figures/x_chr_heatmap_gene_expression.pdf", myp, width=55,height=70,units="cm",limitsize = FALSE)
   
   
-  top.table=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_HL_new_FALSE_TRUE.txt")
+  top.table=read.table("results/top.table_final_sva_dream_ipsc_HL_new_FALSE_TRUE.txt")
   adj.p.val=top.table$adj.P.Val[match(extract_text_before_first_dot(gene_ids_filtered2[-rm.ind]),extract_text_before_first_dot(rownames(top.table)))]
   logFC=top.table$logFC[match(extract_text_before_first_dot(gene_ids_filtered2[-rm.ind]),extract_text_before_first_dot(rownames(top.table)))]
   
@@ -188,9 +188,9 @@ plot_heatmap_expr <- function(res_10) {
           legend.text = element_text(size=25)) +
     theme(panel.background = element_rect(fill = "white", colour = "white")) 
   
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/diff_median_ase.pdf", pp_ase_diff, height=70,width=20,units="cm",limitsize = FALSE)
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/diff_expr.pdf", pp_expr_diff, height=70,width=20,units="cm",limitsize = FALSE)
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/diff_esc_ratio.pdf", pp_esc_diff, height=70,width=20,units="cm",limitsize = FALSE)
+  ggsave("figures/diff_median_ase.pdf", pp_ase_diff, height=70,width=20,units="cm",limitsize = FALSE)
+  ggsave("figures/diff_expr.pdf", pp_expr_diff, height=70,width=20,units="cm",limitsize = FALSE)
+  ggsave("figures/diff_esc_ratio.pdf", pp_esc_diff, height=70,width=20,units="cm",limitsize = FALSE)
   
   print(paste("Number of significant genes according to difference btw ASE: ",sum(df.median_ASE_diff$ase_sig,na.rm=TRUE),sep=""))
   print(paste("Number of significant genes according to difference btw expression: ",sum(df.median_ASE_diff[-seq(dim(df.median_ASE_diff)[1],1)[rm.ind],]$expr_sig),sep=""))
@@ -227,6 +227,6 @@ plot_heatmap_expr <- function(res_10) {
           plot.title = element_text(size=18))
   
   print(paste("p-value for regression model: ",overall_p(model1),sep=""))
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/esc_ratio_diff_logFC_chrX.pdf", p1, width=15,height=15,units="cm",limitsize = FALSE)
+  ggsave("figures/esc_ratio_diff_logFC_chrX.pdf", p1, width=15,height=15,units="cm",limitsize = FALSE)
   
 }

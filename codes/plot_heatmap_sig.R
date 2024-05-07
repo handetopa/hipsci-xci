@@ -77,7 +77,7 @@ plot_heatmap_sig <- function(res, min_nonna_num=10) {
     theme(strip.text.x = element_text(size=35)) +
     theme(plot.margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")) 
 
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/x_chr_heatmap_sig.pdf", myp, width=55,height=70,units="cm",limitsize = FALSE)
+  ggsave("figures/x_chr_heatmap_sig.pdf", myp, width=55,height=70,units="cm",limitsize = FALSE)
   
   return(res_10)
   

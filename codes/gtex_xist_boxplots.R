@@ -6,8 +6,8 @@
 
 # Download GTEx Analysis v8 RNA-seq gene read counts by tissue (https://gtexportal.org/home/downloads/adult-gtex/bulk_tissue_expression)
 # and place them in files folder. Also, download GTEx_Analysis_v8_Annotations_SubjectPhenotypesDS.txt from Metadata in GTEx portal.
-setwd("/Users/topah/Desktop/hipsci_codes/codes/gtex_gene_counts/files")
-gtex_counts_files=list.files(path="/Users/topah/Desktop/hipsci_codes/codes/gtex_gene_counts/files")
+gtex_counts_files=list.files(path="codes/gtex_gene_counts/files")
+setwd("codes/gtex_gene_counts/files")
 pp=read.table("../GTEx_Analysis_v8_Annotations_SubjectPhenotypesDS.txt",header=TRUE,sep="\t")
 
 library(edgeR)
@@ -56,7 +56,7 @@ for (i in 2:length(gtex_counts_files)) {
 
 DF$tissue2=factor(DF$tissue, labels=sub('.*\\v8_', '', gsub("\\..*", "", gtex_counts_files[1:54])), levels=as.character(1:54))
 DF$tissue2=paste("GTEx_",DF$tissue2,sep="")
-load("/Users/topah/Desktop/hipsci_codes/data/data_for_DE_new.RData")
+load("../../../data/data_for_DE_new.RData")
 df_ipsc=data.frame(xist=D_simple$xist_cpm_log[which(D_simple$sex=="female")],sex=rep("2",sum(D_simple$sex=="female")),tissue=rep("HipSci_iPSC",sum(D_simple$sex=="female")),tissue2=rep("HipSci_iPSC",sum(D_simple$sex=="female")))
 DF=rbind(DF,df_ipsc)
 
@@ -72,10 +72,10 @@ pp=ggplot(DF,aes(x=tissue2,y=xist,fill=tissue2)) +
   xlab("") +
   geom_hline(yintercept=1.5,linetype=2,color="gray8") +
   theme(text = element_text(size=20)) 
-ggsave("/Users/topah/Desktop/hipsci_codes/figures/gtex_xist_boxplots.pdf", pp,width=50,height=25,units="cm",limitsize = FALSE)
+ggsave("../../../figures/gtex_xist_boxplots.pdf", pp,width=50,height=25,units="cm",limitsize = FALSE)
 
 
-load("/Users/topah/Desktop/hipsci_codes/data/data_for_DE_new.RData")
+load("../../../data/data_for_DE_new.RData")
 dim(D_simple)
 df=data.frame(xist=D_simple$xist_cpm_log,xist_group=D_simple$xist_group)
 df$xist_group=as.factor(df$xist_group)
@@ -90,4 +90,4 @@ pp=ggplot(df,aes(x=xist_group,y=xist,color=xist_group)) +
   ylab(expression("XIST expression (log"[2]*"(CPM+0.5))")) +
   xlab("") +
   theme(text = element_text(size=20)) 
-ggsave("/Users/topah/Desktop/hipsci_codes/figures/xist_levels_by_groups.pdf", pp, width=15,height=15,units="cm",limitsize = FALSE)
+ggsave("../../../figures/xist_levels_by_groups.pdf", pp, width=15,height=15,units="cm",limitsize = FALSE)

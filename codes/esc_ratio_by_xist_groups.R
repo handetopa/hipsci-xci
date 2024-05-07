@@ -6,16 +6,11 @@
 
 esc_ratio_by_xist_groups <- function() {
   
-  path = "/Users/topah/Desktop/hipsci_codes"
-  source(file.path(path,"codes/get_ase_matrix.R"))
+  source("codes/get_ase_matrix.R")
   res=get_ase_matrix(include="all",mychr="X",mysex="female",min_ase_ratio_for_escape=0.1,xist_lim=1.5,include.na=FALSE,genes_orderby="pos",samples_orderby="xist",altern_hypt="greater",min_nonna_num=0)
   
   D=res$D
   sig=res$sig
-  #clusters=read.table("/Users/topah/Desktop/hipsci_codes/data/female_clusters.txt",header=TRUE,sep="\t")
-  #D$xist_group=clusters$clusterName[match(D$lines,clusters$lines)]
-  #D$xist_group[which(D$sex=="male")]="male"
-  
   df=data.frame(esc_ratio=c(colSums(sig[,which(D$xist_group=="High-XIST female")],na.rm=TRUE) / colSums(!is.na(sig[,which(D$xist_group=="High-XIST female")])),
                             colSums(sig[,which(D$xist_group=="Low-XIST female")],na.rm=TRUE) / colSums(!is.na(sig[,which(D$xist_group=="Low-XIST female")]))),
                 cluster=c(rep("High-XIST",sum(D$xist_group=="High-XIST female")),
@@ -42,7 +37,7 @@ esc_ratio_by_xist_groups <- function() {
             colSums(sig[,which(D$xist_group=="Low-XIST female")],na.rm=TRUE) / colSums(!is.na(sig[,which(D$xist_group=="Low-XIST female")])))$p.value
   print(paste("t-test p-val: ",p1,sep=""))
   print(paste("Wilcoxon test p-val: ",p2,sep=""))
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/esc_ratio_by_xist_groups.pdf", pp, width=15,height=15,units="cm",limitsize = FALSE)
+  ggsave("figures/esc_ratio_by_xist_groups.pdf", pp, width=15,height=15,units="cm",limitsize = FALSE)
   
   t.test(colSums(sig[,which(D$xist_group=="High-XIST female")],na.rm=TRUE)/colSums(!is.na(sig[,which(D$xist_group=="High-XIST female")])))$estimate
   t.test(colSums(sig[,which(D$xist_group=="High-XIST female")],na.rm=TRUE)/colSums(!is.na(sig[,which(D$xist_group=="High-XIST female")])))$conf.int

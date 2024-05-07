@@ -55,7 +55,7 @@ human_tissues_vs_hipsci_comparison <- function(human_xci,ddf,th_inactive=0,th_es
     theme(axis.text.x = element_text(angle = 90, vjust=0.5)) +
     theme(text = element_text(size=20)) 
   
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/esc_threshold.pdf", p.escthr, width=20,height=18,units="cm",limitsize = FALSE)
+  ggsave("figures/esc_threshold.pdf", p.escthr, width=20,height=18,units="cm",limitsize = FALSE)
   
   group1_xci=c("",length(a))
   group1_xci[which(a>=th_esc)]="Escape"
@@ -148,7 +148,7 @@ human_tissues_vs_hipsci_comparison <- function(human_xci,ddf,th_inactive=0,th_es
     guides(color="none") +
     theme(axis.text.x = element_text(angle = 90, vjust=0.5, color=c(rep("black",3),rep("#CC0033",3),rep("mediumorchid",3),rep("#FF99CC",3)))) 
   
-  ggsave(paste("/Users/topah/Desktop/hipsci_codes/figures/xci_",sub("\\.", "", as.character(th_esc)),".pdf",sep=""), p.xci, width=20,height=18,units="cm",limitsize = FALSE)
+  ggsave(paste("figures/xci_",sub("\\.", "", as.character(th_esc)),".pdf",sep=""), p.xci, width=20,height=18,units="cm",limitsize = FALSE)
   
   print(paste("Percentage of human escape: ",df_gg$perc[which(df_gg$comb_group=="Human_Escape")],sep=""))
   print(paste("Percentage of human variable: ",df_gg$perc[which(df_gg$comb_group=="Human_Variable")],sep=""))

@@ -6,9 +6,9 @@
 
 boxplot_esc_ratio_per_xci_group <- function(human_xci=NULL) {
   chr="X"
-  f1=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_mh2_new_FALSE_TRUE.txt")
-  f2=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_mhe2_new_FALSE_TRUE.txt")
-  f3=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_ml2_new_FALSE_TRUE.txt")
+  f1=read.table("results/top.table_final_sva_dream_ipsc_mh2_new_FALSE_TRUE.txt")
+  f2=read.table("results/top.table_final_sva_dream_ipsc_mhe2_new_FALSE_TRUE.txt")
+  f3=read.table("results/top.table_final_sva_dream_ipsc_ml2_new_FALSE_TRUE.txt")
   xist_ind=which(f1$gene_name=="XIST")
   f1=f1[-xist_ind,]
   f2=f2[-xist_ind,]
@@ -28,9 +28,9 @@ boxplot_esc_ratio_per_xci_group <- function(human_xci=NULL) {
   f2=f2[ind_chr,]
   f3=f3[ind_chr,]
 
-  source(file.path(path,"codes/get_ase_matrix.R"))
+  source("codes/get_ase_matrix.R")
   res=get_ase_matrix(include="all",mychr="X",mysex="female",min_ase_ratio_for_escape=0.1,xist_lim=1.5,include.na=FALSE,genes_orderby="pos",samples_orderby="xist",altern_hypt="greater",min_nonna_num=0)
-  source(file.path(path,"codes/plot_heatmap.R"))
+  source("codes/plot_heatmap.R")
   res_10=plot_heatmap(res=res, min_nonna_num=10)
   gene_ids=res_10$gene_info$gene_id
   sig=res_10$sig
@@ -82,6 +82,6 @@ boxplot_esc_ratio_per_xci_group <- function(human_xci=NULL) {
     scale_y_continuous(breaks=c(0,0.25,0.5,0.75,1)) +
     theme(text = element_text(size=20))
 
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/boxplot_esc_ratio_per_xci_group.pdf", p.xci, width=15,height=12,units="cm",limitsize = FALSE)
+  ggsave("figures/boxplot_esc_ratio_per_xci_group.pdf", p.xci, width=15,height=12,units="cm",limitsize = FALSE)
 
 }

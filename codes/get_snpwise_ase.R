@@ -7,9 +7,9 @@
 get_snpwise_ase <- function(ase_fileName1,ase_fileName2=NULL,gene=NULL,chr=NULL,write_file=TRUE) {
   
   library(rdist)
-  load("/Users/topah/Desktop/hipsci_codes/data/gene_info/ref_hs37d5.RData")
-  source("/Users/topah/Desktop/hipsci_codes/codes/position_scripts.R")
-  source("/Users/topah/Desktop/hipsci_codes/codes/extract_text_before_first_dot.R")
+  load("data/gene_info/ref_hs37d5.RData")
+  source("codes/position_scripts.R")
+  source("codes/extract_text_before_first_dot.R")
   if (!file.exists(ase_fileName1)) {
     print(paste("No ASE file found for ",ase_fileName1,sep=""))
   } else {

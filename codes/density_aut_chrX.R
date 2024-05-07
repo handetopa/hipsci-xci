@@ -6,7 +6,7 @@
 
 density_aut_chrX <- function() {
   
-  source(file.path(path,"codes/get_ase_matrix.R"))
+  source("codes/get_ase_matrix.R")
   chr=1
   res_aut=get_ase_matrix(include="all",mychr=as.character(chr),mysex="all",min_ase_ratio_for_escape=0.1,xist_lim=1.5,include.na=FALSE,genes_orderby="pos",altern_hypt="less",min_nonna_num=0)
   DD=res_aut$D
@@ -81,7 +81,7 @@ density_aut_chrX <- function() {
     theme(text = element_text(size=20))
   
   
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/density_autosomes.pdf", p_A, width=16,height=12,units="cm",limitsize = FALSE)
-  ggsave("/Users/topah/Desktop/hipsci_codes/figures/density_X.pdf", p_X, width=15,height=12,units="cm",limitsize = FALSE)
+  ggsave("figures/density_autosomes.pdf", p_A, width=16,height=12,units="cm",limitsize = FALSE)
+  ggsave("figures/density_X.pdf", p_X, width=15,height=12,units="cm",limitsize = FALSE)
 
 }

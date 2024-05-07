@@ -12,11 +12,11 @@ get_ase_matrix <- function(include="all",mychr="X",mysex="female",min_ase_ratio_
   library(viridis)
   library(ggpubr)
   
-  source("/Users/topah/Desktop/hipsci_codes/codes/position_scripts.R")
-  source("/Users/topah/Desktop/hipsci_codes/codes/extract_text_before_first_dot.R")
-  ga_path="/Users/topah/Desktop/hipsci_codes/data/ase_files"
-  load("/Users/topah/Desktop/hipsci_codes/data/gene_info/ref_hs37d5.RData")
-  load("/Users/topah/Desktop/hipsci_codes/data/data_for_DE_new.RData")
+  source("codes/position_scripts.R")
+  source("codes/extract_text_before_first_dot.R")
+  ga_path="data/ase_files"
+  load("data/gene_info/ref_hs37d5.RData")
+  load("data/data_for_DE_new.RData")
   DD=D_simple
   rm(D_simple)
   
@@ -142,7 +142,7 @@ get_ase_matrix <- function(include="all",mychr="X",mysex="female",min_ase_ratio_
     ase_r$gene_id=gene_ids
     ase_r$chr=as.character(mychr)
     ase_r=ase_r[,dim(ase_r)[2]:1]
-    write_xlsx(ase_r,paste("/Users/topah/Desktop/hipsci_codes/data/ase_ratios/ase_ratios_",mychr,".xlsx",sep=""))
+    write_xlsx(ase_r,paste("data/ase_ratios/ase_ratios_",mychr,".xlsx",sep=""))
   }
   
   ttt=which((rowSums(!is.na(ase_ratios[,which(D$xist_group=="High-XIST female")])))>=min_nonna_num & (rowSums(!is.na(ase_ratios[,which(D$xist_group=="Low-XIST female")])))>=min_nonna_num)

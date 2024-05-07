@@ -65,7 +65,7 @@ get_rawData <- function(path) {
   hist(hipsci_info$passage_number[which(hipsci_info$center_name=="SC")])
   hist(hipsci_info$passage_number[which(hipsci_info$center_name=="WELLCOME TRUST SANGER INSTITUTE")])
   
-  gtex_v8_info=read.table(file.path(hipsci_datadir,"gencode_genes.txt"),header=FALSE)
+  gtex_v8_info=read.table(file.path(hipsci_datadir,"gene_info/gencode_genes.txt"),header=FALSE)
   ii=match(rownames(counts),gtex_v8_info[,2])
   gene_info=data.frame(gene_id=rownames(counts),gene_name=gtex_v8_info[ii,4],chr=gtex_v8_info[ii,1],gene_biotype=gtex_v8_info[ii,3])
   gene_info$chr=gsub('chr','',gene_info$chr)

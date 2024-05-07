@@ -6,9 +6,9 @@
 
 violin_abslogfc_femalebiased_in_G1G2G3 <- function() {
   chr="X"
-  f1=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_mh2_new_FALSE_TRUE.txt")
-  f2=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_mhe2_new_FALSE_TRUE.txt")
-  f3=read.table("/Users/topah/Desktop/hipsci_codes/results/top.table_final_sva_dream_ipsc_ml2_new_FALSE_TRUE.txt")
+  f1=read.table("results/top.table_final_sva_dream_ipsc_mh2_new_FALSE_TRUE.txt")
+  f2=read.table("results/top.table_final_sva_dream_ipsc_mhe2_new_FALSE_TRUE.txt")
+  f3=read.table("results/top.table_final_sva_dream_ipsc_ml2_new_FALSE_TRUE.txt")
   xist_ind=which(f1$gene_name=="XIST")
   f1=f1[-xist_ind,]
   f2=f2[-xist_ind,]
@@ -46,10 +46,10 @@ violin_abslogfc_femalebiased_in_G1G2G3 <- function() {
     theme(text = element_text(size=20)) 
   if (chr=="X") {
     p.effects = p.effects + ylab(expression("|Log"[2]*"(Fold change)|")) 
-    ggsave("/Users/topah/Desktop/hipsci_codes/figures/female_biased_inG1G2G3_abslogfc_chrX_violin.pdf", p.effects, width=15,height=15,units="cm",limitsize = FALSE)
+    ggsave("figures/female_biased_inG1G2G3_abslogfc_chrX_violin.pdf", p.effects, width=15,height=15,units="cm",limitsize = FALSE)
   }  else if (chr=="aut") {
     p.effects = p.effects + ylab("Absolute logFC in autosomal genes") 
-    ggsave("/Users/topah/Desktop/hipsci_codes/figures/abslogfc_aut.pdf", p.effects, width=15,height=15,units="cm",limitsize = FALSE)
+    ggsave("figures/abslogfc_aut.pdf", p.effects, width=15,height=15,units="cm",limitsize = FALSE)
   }
   
   print(paste("Number of genes: ",length(ind_de_all),sep=""))
