@@ -1,20 +1,17 @@
 # -----------------------------------------------------------
-# Script Name: get_rawData.R
+# Script Name: get_countsData.R
 # Author: Hande Topa
 # Date: 2024-03-20
 # -----------------------------------------------------------
 
-get_rawData <- function(path) {
+get_countsData <- function(path) {
   
-  source(file.path(path,"codes/extract_text_before_first_dot.R"))
   hipsci_datadir = file.path(path,"data")
   load(file.path(hipsci_datadir,"counts.Rdata")) # counts
   
   lines=read.table(file.path(hipsci_datadir,"hipsci_lines.tsv"),header=TRUE,sep="\t")
   files=read.delim(file.path(hipsci_datadir,"hipsci_files.tsv"), header = TRUE, stringsAsFactors = FALSE, quote = "", sep = "\t")
   report=read.table(file.path(hipsci_datadir,"filereport_read_run_PRJEB7388_tsv.txt"),header=TRUE,sep="\t")
-  dim(files)
-  dim(report)
   ind=match(colnames(counts),files$Accession)
   files=files[ind,]
   ind=match(colnames(counts),report$run_accession)
@@ -87,8 +84,7 @@ get_rawData <- function(path) {
   gene_info$class=NA
   gene_info$expressed_allele=NA
   
-  library("readxl")
-  xci_status=read_excel(file.path(hipsci_datadir,"combined_status.xlsx"),col_names = TRUE)
+  xci_status=read_excel(file.path(hipsci_datadir,"escape_genes.xlsx"),col_names = TRUE, skip = 1)
   
   imprint_status=read_excel(file.path(hipsci_datadir,"geneimprint_22092021.xlsx"),col_names = TRUE)
   gene_names=c()
@@ -112,8 +108,8 @@ get_rawData <- function(path) {
 
   mm3=match(extract_text_before_first_dot(xci_status$`Gene ID`) ,extract_text_before_first_dot(gene_info$gene_id))
   mm3[which(is.na(mm3)==TRUE)]=match(xci_status$`Gene name`[which(is.na(mm3)==TRUE)],gene_info$gene_name)
-  gene_info$class[mm3[!is.na(mm3)]]=xci_status$`Reported XCI status`[!is.na(mm3)]
-  gene_info$region[mm3[!is.na(mm3)]]=xci_status$Region[!is.na(mm3)]
+  gene_info$class[mm3[!is.na(mm3)]]=xci_status$`Combined XCI status`[!is.na(mm3)]
+  gene_info$region[gene_info$chr == "X" & is.na(gene_info$region)]="nonPAR"
   
   gene_info$region[which(gene_info$chr!="X" & gene_info$chr!="Y" & gene_info$chr!="MT")]="AUT"
   gene_info$region[which(gene_info$chr=="Y")]="Y"
@@ -123,8 +119,9 @@ get_rawData <- function(path) {
   sel_ind=which(((gene_info$gene_biotype=="protein_coding") | (gene_info$gene_biotype =="lincRNA")))
   gene_info=gene_info[sel_ind,]
   counts=counts[sel_ind,]
+  hipsci_info$center_name[which(hipsci_info$center_name=="WELLCOME TRUST SANGER INSTITUTE")]=gsub(" ", "_", "WELLCOME TRUST SANGER INSTITUTE")
   
-  save(hipsci_info,counts,gene_info,file=file.path(hipsci_datadir,"hipsci_rnaseq_rawData.RData"))
+  save(hipsci_info,counts,gene_info,file=file.path(hipsci_datadir,"hipsci_rnaseq_countsData.RData"))
   
 }
 

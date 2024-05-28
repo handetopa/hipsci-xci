@@ -16,7 +16,7 @@ get_ase_matrix <- function(include="all",mychr="X",mysex="female",min_ase_ratio_
   source("codes/extract_text_before_first_dot.R")
   ga_path="data/ase_files"
   load("data/gene_info/ref_hs37d5.RData")
-  load("data/data_for_DE_new.RData")
+  load("data/data_for_DE_ipsc.RData")
   DD=D_simple
   rm(D_simple)
   

@@ -4,7 +4,7 @@
 # Date: 2024-03-20
 # -----------------------------------------------------------
 
-runDE <- function(path,dataForDE,comparison="MHL",celltype="ipsc",treatasind=FALSE,usesva=TRUE,by_cluster=TRUE) {
+runDE <- function(path,dataForDE,comparison="MG1",celltype="ipsc",treatasind=FALSE,usesva=TRUE,by_cluster=TRUE) {
 
   library(edgeR)
   library(sva)
@@ -14,7 +14,6 @@ runDE <- function(path,dataForDE,comparison="MHL",celltype="ipsc",treatasind=FAL
   library(ggplot2)
   
   load(dataForDE)
-  D_simple$center_name[which(D_simple$center_name=="WELLCOME TRUST SANGER INSTITUTE")]=gsub(" ", "_", "WELLCOME TRUST SANGER INSTITUTE")
   
   if (by_cluster==TRUE) {
     clusters=read.table(file.path(path,"data/female_clusters.txt"),header=TRUE,sep="\t")
@@ -32,7 +31,7 @@ runDE <- function(path,dataForDE,comparison="MHL",celltype="ipsc",treatasind=FAL
                 center_name=D_simple$center_name[which(D_simple$sex=="female")],type=D_simple$type[which(D_simple$sex=="female")],
                 group=D_simple$xist_group[which(D_simple$sex=="female")])
   if (by_cluster==TRUE) {
-    df$group=factor(factor(df$group),levels=c("low","highescape","high"))
+    df$group=factor(factor(df$group),levels=c("G3","G2","G1"))
   } else {
     df$group=factor(factor(df$group),levels=c("lowXIST","highXIST"))
   }
@@ -46,7 +45,7 @@ runDE <- function(path,dataForDE,comparison="MHL",celltype="ipsc",treatasind=FAL
       ylab("Passage number") +
       scale_color_discrete(name = "Center name", labels = c("SC", "Wellcome Trust\nSanger Institute", "C")) +
       if (by_cluster==TRUE) {
-        stat_compare_means(comparisons = list(c("low","highescape"),c("low","high"),c("high","highescape")),method = "t.test")
+        stat_compare_means(comparisons = list(c("G3","G2"),c("G3","G1"),c("G1","G2")),method = "t.test")
       } else {
         stat_compare_means(method = "t.test",label.x = 1.5, label.y = 42)
       }
@@ -113,30 +112,30 @@ runDE <- function(path,dataForDE,comparison="MHL",celltype="ipsc",treatasind=FAL
     L = makeContrastsDream(form, metadata, contrasts = c(MHL="sex_groupmale - ((sex_grouphighXIST+sex_grouplowXIST)/2)"))
   } else if (comparison=="MLMH") {
     L = makeContrastsDream(form, metadata, contrasts = c(MLMH="(sex_groupmale-sex_grouplowXIST) - (sex_groupmale-sex_grouphighXIST)"))
-  } else if (comparison=="ml") {
-    L = makeContrastsDream(form, metadata, contrasts = c(ml="sex_groupmale - sex_grouplow"))
-  } else if (comparison=="mh") {
-    L = makeContrastsDream(form, metadata, contrasts = c(mh="sex_groupmale - sex_grouphigh"))
-  } else if (comparison=="mhe") {
-    L = makeContrastsDream(form, metadata, contrasts = c(mhe="sex_groupmale - sex_grouphighescape"))
-  } else if (comparison=="mlhe") {
-    L = makeContrastsDream(form, metadata, contrasts = c(mlhe="sex_groupmale - (sex_grouplow + sex_grouphighescape)/2"))
-  } else if (comparison=="mhhe") {
-    L = makeContrastsDream(form, metadata, contrasts = c(mhhe="sex_groupmale - (sex_grouphigh + sex_grouphighescape)/2"))
-  } else if (comparison=="mlheh") {
-    L = makeContrastsDream(form, metadata, contrasts = c(mlheh="sex_groupmale - (sex_grouplow + sex_grouphighescape + sex_grouphigh)/3"))
-  } else if (comparison=="mlh") {
-    L = makeContrastsDream(form, metadata, contrasts = c(mlh="sex_groupmale - (sex_grouplow + sex_grouphigh)/2"))
-  } else if (comparison=="hhe") {
-    L = makeContrastsDream(form, metadata, contrasts = c(hhe="sex_grouphigh - sex_grouphighescape"))
-  } else if (comparison=="hl") {
-    L = makeContrastsDream(form, metadata, contrasts = c(hl="sex_grouphigh - sex_grouplow"))
-  } else if (comparison=="lhe") {
-    L = makeContrastsDream(form, metadata, contrasts = c(lhe="sex_grouplow - sex_grouphighescape"))
-  } else if (comparison=="lheh") {
-    L = makeContrastsDream(form, metadata, contrasts = c(lheh="(sex_grouplow + sex_grouphighescape)/2 - sex_grouphigh"))
-  } else if (comparison=="lhhe") {
-    L = makeContrastsDream(form, metadata, contrasts = c(lhhe="sex_grouplow - (sex_grouphigh + sex_grouphighescape)/2"))
+  } else if (comparison=="MG3") {
+    L = makeContrastsDream(form, metadata, contrasts = c(ml="sex_groupmale - sex_groupG3"))
+  } else if (comparison=="MG1") {
+    L = makeContrastsDream(form, metadata, contrasts = c(mh="sex_groupmale - sex_groupG1"))
+  } else if (comparison=="MG2") {
+    L = makeContrastsDream(form, metadata, contrasts = c(mhe="sex_groupmale - sex_groupG2"))
+  } else if (comparison=="MG3G2") {
+    L = makeContrastsDream(form, metadata, contrasts = c(mlhe="sex_groupmale - (sex_groupG3 + sex_groupG2)/2"))
+  } else if (comparison=="MG1G2") {
+    L = makeContrastsDream(form, metadata, contrasts = c(mhhe="sex_groupmale - (sex_groupG1 + sex_groupG2)/2"))
+  } else if (comparison=="MG3G2G1") {
+    L = makeContrastsDream(form, metadata, contrasts = c(mlheh="sex_groupmale - (sex_groupG3 + sex_groupG2 + sex_groupG1)/3"))
+  } else if (comparison=="MG3G1") {
+    L = makeContrastsDream(form, metadata, contrasts = c(mlh="sex_groupmale - (sex_groupG3 + sex_groupG1)/2"))
+  } else if (comparison=="G1G2") {
+    L = makeContrastsDream(form, metadata, contrasts = c(hhe="sex_groupG1 - sex_groupG2"))
+  } else if (comparison=="G1G3") {
+    L = makeContrastsDream(form, metadata, contrasts = c(hl="sex_groupG1 - sex_groupG3"))
+  } else if (comparison=="G3G2") {
+    L = makeContrastsDream(form, metadata, contrasts = c(lhe="sex_groupG3 - sex_groupG2"))
+  } else if (comparison=="G3G2G1") {
+    L = makeContrastsDream(form, metadata, contrasts = c(lheh="(sex_groupG3 + sex_groupG2)/2 - sex_groupG1"))
+  } else if (comparison=="G3G1G2") {
+    L = makeContrastsDream(form, metadata, contrasts = c(lhhe="sex_groupG3 - (sex_groupG1 + sex_groupG2)/2"))
   } 
 
   # Visualize contrast matrix
@@ -196,9 +195,9 @@ runDE <- function(path,dataForDE,comparison="MHL",celltype="ipsc",treatasind=FAL
   library(ashr)
   top.table$lfsr=ash(top.table$logFC,top.table$logFC_SE,df=median(top.table$dof))$result$lfsr
   if (by_cluster==FALSE) {
-    write.table(top.table,file=file.path(path,paste("results/top.table_final_sva_dream_",celltype,"_",comparison,"_new_",treatasind,"_",usesva,".txt",sep="")),quote=FALSE,sep="\t")
+    write.table(top.table,file=file.path(path,paste("results/top.table_final_sva_dream_",celltype,"_",comparison,"_",treatasind,"_",usesva,".txt",sep="")),quote=FALSE,sep="\t")
   } else {
-    write.table(top.table,file=file.path(path,paste("results/top.table_final_sva_dream_",celltype,"_",comparison,"2_new_",treatasind,"_",usesva,".txt",sep="")),quote=FALSE,sep="\t")
+    write.table(top.table,file=file.path(path,paste("results/top.table_final_sva_dream_",celltype,"_",comparison,"_",treatasind,"_",usesva,".txt",sep="")),quote=FALSE,sep="\t")
   }
   
 }

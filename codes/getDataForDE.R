@@ -14,7 +14,7 @@ getDataForDE <- function(path) {
   D_simple=hipsci_info_combined
   gene_info=gene_info_orig
   
-  library(edgeR)
+  #library(edgeR)
   
   #male_donors=unique(D_simple$donor[D_simple$sex=="male"]) ## 77 male donors
   #female_donors=unique(D_simple$donor[D_simple$sex=="female"]) ## 110 female donors
@@ -41,8 +41,8 @@ getDataForDE <- function(path) {
   
   D_simple$xist_cpm_log=cpm_log[which(rownames(cpm_log)=="ENSG00000229807.10"),]
   
-  library(reshape)
-  library(ggplot2)
+  #library(reshape)
+  #library(ggplot2)
   # Check the expression of pluripotency marker genes:
   nanog_ind=which(gene_info$gene_name=="NANOG") 
   sox2_ind=which(gene_info$gene_name=="SOX2") 
@@ -79,7 +79,6 @@ getDataForDE <- function(path) {
   D_simple$concordant[which(D_simple$lines %in% discordant_lines)]=FALSE
   
   D_simple$type="ipsc"
-  #D_simple$center_name[which(D_simple$center_name=="WELLCOME TRUST SANGER INSTITUTE")]=gsub(" ", "_", "WELLCOME TRUST SANGER INSTITUTE")
-  save(D_simple,cpm_log,gene_info,d0,file=file.path(hipsci_datadir,"data_for_DE_new.RData"))
+  save(D_simple,cpm_log,gene_info,d0,file=file.path(hipsci_datadir,"data_for_DE_ipsc.RData"))
   
 }

@@ -8,7 +8,7 @@ get_data_byLineCenter <- function(path) {
   
   source(file.path(path,"codes/sum_counts_of_technical_reps.R"))
   hipsci_datadir = file.path(path,"data")
-  raw_data=file.path(hipsci_datadir,"hipsci_rnaseq_rawData.RData")
+  raw_data=file.path(hipsci_datadir,"hipsci_rnaseq_countsData.RData")
   load(raw_data)
   gene_info_orig=gene_info
   counts_new=sum_counts_of_technical_reps(counts,hipsci_info,bycenter=TRUE)
@@ -30,8 +30,8 @@ get_data_byLineCenter <- function(path) {
   hipsci_info_SC$base_count=base_count_summed
   hipsci_info_SC$num_of_technical_reps=num_of_technical_reps
   
-  hipsci_info_WT=hipsci_info[which((hipsci_info$lines %in% colnames(counts_new$`WELLCOME TRUST SANGER INSTITUTE`)) & (hipsci_info$center_name=="WELLCOME TRUST SANGER INSTITUTE")),]
-  unique_lines=colnames(counts_new$`WELLCOME TRUST SANGER INSTITUTE`)
+  hipsci_info_WT=hipsci_info[which((hipsci_info$lines %in% colnames(counts_new$`WELLCOME_TRUST_SANGER_INSTITUTE`)) & (hipsci_info$center_name=="WELLCOME_TRUST_SANGER_INSTITUTE")),]
+  unique_lines=colnames(counts_new$`WELLCOME_TRUST_SANGER_INSTITUTE`)
   n_unique_lines=length(unique_lines)
   read_count_summed=matrix(0,n_unique_lines,1)
   base_count_summed=matrix(0,n_unique_lines,1)
@@ -42,13 +42,13 @@ get_data_byLineCenter <- function(path) {
     base_count_summed[i]=sum(hipsci_info_WT$base_count[which(hipsci_info_WT$lines==unique_lines[i])])
   }
   hipsci_info_WT=hipsci_info_WT[!duplicated(hipsci_info_WT$lines),]
-  hipsci_info_WT=hipsci_info_WT[match(colnames(counts_new$`WELLCOME TRUST SANGER INSTITUTE`),hipsci_info_WT$lines),]
+  hipsci_info_WT=hipsci_info_WT[match(colnames(counts_new$`WELLCOME_TRUST_SANGER_INSTITUTE`),hipsci_info_WT$lines),]
   hipsci_info_WT$read_count=read_count_summed
   hipsci_info_WT$base_count=base_count_summed
   hipsci_info_WT$num_of_technical_reps=num_of_technical_reps
   
   counts_SC=counts_new$SC
-  counts_WT=counts_new$`WELLCOME TRUST SANGER INSTITUTE`
+  counts_WT=counts_new$`WELLCOME_TRUST_SANGER_INSTITUTE`
   colnames(counts_WT)=paste(colnames(counts_WT),"_WT",sep="")
   colnames(counts_SC)=paste(colnames(counts_SC),"_SC",sep="")
   hipsci_info_combined=rbind(hipsci_info_SC,hipsci_info_WT)

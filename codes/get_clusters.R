@@ -5,8 +5,10 @@
 # -----------------------------------------------------------
 
 get_clusters <- function() {
-  load("data/dff1.RData")
-  df=data.frame(lines=dff1$cell_line,xist_group=dff1$XIST_group, xist_expr=dff1$XIST_logCPM,num_escape_genes=dff1$num_escape_genes,num_observed_genes=dff1$num_observed_genes)
+  load("data/lines_ase_summary_data.RData")
+  df=data.frame(lines=ase_summary_by_lines$cell_line,xist_group=ase_summary_by_lines$XIST_group,
+                xist_expr=ase_summary_by_lines$XIST_logCPM,num_escape_genes=ase_summary_by_lines$num_escape_genes,
+                num_observed_genes=ase_summary_by_lines$num_observed_genes)
   # k-means clustering:
   T=as.matrix(cbind(df$xist_expr,df$num_escape_genes/df$num_observed_genes),ncol=2)
   colnames(T) <- c( "xist_expr","esc_ratio")
@@ -14,7 +16,7 @@ get_clusters <- function() {
   df55=as.data.frame(T)
   ##
   # Optimal number of clusters:
-  library(factoextra)
+  #library(factoextra)
   fviz_nbclust(df55, kmeans, method = "gap_stat", nboot=1000 ,print.summary = TRUE) # Gap-statistics
   ##
   numc=3
@@ -22,9 +24,9 @@ get_clusters <- function() {
 
   df$cluster=df55$cluster
   df$clusterName=as.character(df$cluster)
-  df$clusterName[df$cluster==1]="low"
-  df$clusterName[df$cluster==2]="highescape"
-  df$clusterName[df$cluster==3]="high"
+  df$clusterName[df$cluster==1]="G3"
+  df$clusterName[df$cluster==2]="G2"
+  df$clusterName[df$cluster==3]="G1"
 
   write.table(df,file="data/female_clusters.txt",quote=FALSE,sep="\t",col.names=TRUE,row.names=FALSE)
 }
